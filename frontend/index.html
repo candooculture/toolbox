@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Candoo Clarity Toolbox</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      background-color: #ffffff;
+      color: #333333;
+      margin: 40px;
+      padding: 0;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro {
+      max-width: 800px;
+      margin: 20px 0 30px 0;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #555555;
+    }
+
+    .intro h2 {
+      font-size: 22px;
+      margin-bottom: 10px;
+      color: #333333;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .tab.active {
+      background-color: #ffffff;
+      border-bottom: 2px solid #48f191;
+    }
+
+    .content {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 8px;
+      background-color: #fff;
+    }
+
+    .beta-tag {
+      font-size: 12px;
+      color: #48f191;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Candoo Clarity Toolbox</h1>
+
+  <div class="intro">
+    <h2>Behind the Numbers: Your Hidden Costs, Revealed</h2>
+    <p>This toolbox was built for one reason — clarity.</p>
+    <p>In every business, inefficiencies, churn, and leadership gaps are silently bleeding time, money, and momentum.
+    </p>
+    <p>We built this suite to surface invisible losses and offer a clear, actionable starting point.</p>
+    <p>It’s not a crystal ball, and it’s not pretending to be tailored to every company’s nuance. But it’s close —
+      industry benchmarks, smart assumptions, and proven ROI logic are built in to make the invisible… visible.</p>
+    <p>Use it to test scenarios. To validate instincts. To sense-check strategy. Whether you’re an owner, an operator,
+      or a leader who’s had enough of vague problems and fluffy guesses — this is your starting line.</p>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="content" id="contentContainer">Loading...</div>
+
+  <script>
+    const calculators = {
+      team_efficiency: { name: "💸 Payroll Waste", file: "payroll-waste.html" }
+    };
+
+    function loadVisibility() {
+      const tabsDiv = document.getElementById('tabs');
+      const container = document.getElementById('contentContainer');
+      tabsDiv.innerHTML = '';
+
+      Object.keys(calculators).forEach((key) => {
+        const tab = document.createElement('div');
+        tab.className = 'tab';
+        tab.innerHTML = calculators[key].name;
+        tab.onclick = () => switchTab(key, tab);
+        tabsDiv.appendChild(tab);
+      });
+
+      const firstTab = tabsDiv.querySelector('.tab');
+      if (firstTab) {
+        firstTab.classList.add('active');
+        switchTab(Object.keys(calculators)[0], firstTab);
+      }
+    }
+
+    async function switchTab(key, tabEl) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tabEl.classList.add('active');
+
+      const container = document.getElementById('contentContainer');
+      container.innerHTML = '<p>Loading...</p>';
+
+      try {
+        const response = await fetch(calculators[key].file);
+        const html = await response.text();
+
+        // Clean previous scripts
+        const scripts = document.querySelectorAll('script[data-injected]');
+        scripts.forEach(script => script.remove());
+
+        container.innerHTML = html;
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const newScripts = tempDiv.querySelectorAll('script');
+
+        newScripts.forEach(oldScript => {
+          const newScript = document.createElement('script');
+          if (oldScript.src) {
+            newScript.src = oldScript.src;
+          } else {
+            newScript.textContent = oldScript.textContent;
+          }
+          newScript.setAttribute('data-injected', 'true');
+          document.body.appendChild(newScript);
+        });
+
+      } catch (err) {
+        console.error("❌ Error loading module:", err);
+        container.innerHTML = '<p style="color:red;">Error loading module.</p>';
+      }
+    }
+
+    window.onload = loadVisibility;
+  </script>
+</body>
+
+</html>
