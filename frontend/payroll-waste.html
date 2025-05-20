@@ -215,6 +215,9 @@
             resultBox.innerText = out;
             resultBox.style.display = "block";
             document.getElementById("cta-bottom").style.display = "block";
+            setTimeout(() => {
+              resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
           } else {
             resultBox.innerText = "Something went wrong.";
             resultBox.style.display = "block";
