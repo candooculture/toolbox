@@ -18,45 +18,41 @@
   </div>
 
   <form id="efficiency-form">
-    <label>Industry:
-      <select name="industry" id="industry" required>
-        <option value="">Select your industry</option>
-        <option value="Agriculture / Farming">Agriculture / Farming</option>
-        <option value="Construction">Construction</option>
-        <option value="Education & Training">Education & Training</option>
-        <option value="Finance & Insurance">Finance & Insurance</option>
-        <option value="Government / Public Sector">Government / Public Sector</option>
-        <option value="Healthcare">Healthcare</option>
-        <option value="Hospitality">Hospitality</option>
-        <option value="Integrated Services">Integrated Services</option>
-        <option value="Logistics & Transport">Logistics & Transport</option>
-        <option value="Manufacturing">Manufacturing</option>
-        <option value="Media / Creative / Comms">Media / Creative / Comms</option>
-        <option value="Non-Profit">Non-Profit</option>
-        <option value="Professional Services">Professional Services</option>
-        <option value="Real Estate & Property">Real Estate & Property</option>
-        <option value="Retail">Retail</option>
-        <option value="Technology / SaaS">Technology / SaaS</option>
-        <option value="Utilities / Energy / Waste">Utilities / Energy / Waste</option>
-      </select>
-    </label>
+    <label for="industry">Industry:</label>
+    <select name="industry" id="industry" required>
+      <option value="">Select your industry</option>
+      <option value="Agriculture / Farming">Agriculture / Farming</option>
+      <option value="Construction">Construction</option>
+      <option value="Education & Training">Education & Training</option>
+      <option value="Finance & Insurance">Finance & Insurance</option>
+      <option value="Government / Public Sector">Government / Public Sector</option>
+      <option value="Healthcare">Healthcare</option>
+      <option value="Hospitality">Hospitality</option>
+      <option value="Integrated Services">Integrated Services</option>
+      <option value="Logistics & Transport">Logistics & Transport</option>
+      <option value="Manufacturing">Manufacturing</option>
+      <option value="Media / Creative / Comms">Media / Creative / Comms</option>
+      <option value="Non-Profit">Non-Profit</option>
+      <option value="Professional Services">Professional Services</option>
+      <option value="Real Estate & Property">Real Estate & Property</option>
+      <option value="Retail">Retail</option>
+      <option value="Technology / SaaS">Technology / SaaS</option>
+      <option value="Utilities / Energy / Waste">Utilities / Energy / Waste</option>
+    </select>
 
-    <label>Total Employees:
-      <input type="number" name="total_employees" required>
-    </label>
+    <label for="total_employees">Total Employees:</label>
+    <input type="number" name="total_employees" id="total_employees" required>
 
-    <label>Average Annual Salary (AUD):
-      <input type="number" name="avg_salary" required>
-    </label>
+    <label for="avg_salary">Average Annual Salary (AUD):</label>
+    <input type="number" name="avg_salary" id="avg_salary" required>
 
-    <label>Desired Improvement Rate (%):
-      <input type="number" name="improvement_rate" required>
-      <small>e.g., 10 = reduce inefficiency by 10%</small>
-    </label>
+    <label for="improvement_rate">Desired Improvement Rate (%):</label>
+    <input type="number" name="improvement_rate" id="improvement_rate" required>
+    <small>e.g., 10 = reduce inefficiency by 10%</small>
 
     <div style="margin-top: 20px;">
-  <button type="submit">Calculate</button>
-</div>
+      <button type="submit">Calculate</button>
+    </div>
   </form>
 
   <p style="font-size:14px; color:#ccc; margin-top:-10px; margin-bottom:20px;">
