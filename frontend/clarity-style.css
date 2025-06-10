@@ -202,7 +202,10 @@ a button:hover {
     color: #000 !important;
 }
 
-/* === Layout Fix === */
+.cta-button + .cta-button {
+    margin-left: 12px;
+}
+
 #efficiency-form + p {
     margin-top: 10px !important;
 }
