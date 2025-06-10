@@ -203,7 +203,7 @@ a button:hover {
 }
 
 .cta-button + .cta-button {
-    margin-left: 12px;
+    margin-left: 20px;
 }
 
 #efficiency-form + p {
