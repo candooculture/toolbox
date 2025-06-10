@@ -24,6 +24,12 @@ h1 {
     color: #fff;
 }
 
+h2 {
+  color: #13dcff;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
 button {
     background-color: #13dcff;
     color: #000;
