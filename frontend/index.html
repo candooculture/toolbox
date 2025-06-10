@@ -5,18 +5,23 @@
   <meta charset="UTF-8" />
   <title>Candoo Clarity</title>
 
-  <!-- Preload font and CSS -->
+  <!-- Font + speed preconnects -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 16px;
+    html {
       background-color: #000;
       background-image: url('background.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
       color: #fff;
       margin: 40px;
       padding: 0;
@@ -45,46 +50,54 @@
     .tabs {
       display: flex;
       gap: 10px;
-      margin: 0 auto 20px auto;
+      margin-bottom: 20px;
       flex-wrap: wrap;
       justify-content: center;
     }
 
     .tab {
       padding: 12px 20px;
-      background-color: #111;
-      border: 1px solid #13dcff;
+      background-color: #000;
+      border: 2px solid #13dcff;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
       font-size: 16px;
       color: #13dcff;
-      transition: background-color 0.2s ease-in-out, color 0.2s;
+      transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
     }
 
     .tab:hover {
-      background-color: #0b0b0b;
+      background-color: #13dcff;
+      color: #000;
     }
 
     .tab.active {
-      background-color: #000;
-      border: 2px solid #13dcff;
-      color: #13dcff;
+      background-color: #13dcff;
+      color: #000;
     }
 
     .content {
-      border: 1px solid #222;
+      border: 1px solid #333;
       padding: 20px;
       border-radius: 12px;
       background-color: #111;
       max-width: 900px;
-      margin: 0 auto;
+      margin: auto;
     }
 
     .beta-tag {
       font-size: 12px;
       color: #13dcff;
       margin-left: 6px;
+    }
+
+    a {
+      color: #13dcff;
+    }
+
+    a:hover {
+      color: #0fbcd8;
     }
   </style>
 </head>
@@ -96,8 +109,10 @@
     <h2>Behind the Numbers: Your Hidden Costs, Revealed</h2>
     <p>In every business, inefficiencies, churn, and leadership gaps are silently bleeding time, money, and momentum.</p>
     <p>We built this suite to surface invisible losses and offer a clear, actionable starting point.</p>
-    <p>It’s not a crystal ball, and it’s not pretending to be tailored to every company’s nuance. But it’s close — industry benchmarks, smart assumptions, and proven ROI logic are built in to make the invisible… visible.</p>
-    <p>Use it to test scenarios. To validate instincts. To sense-check strategy. Whether you’re an owner, an operator, or a leader who’s had enough of vague problems and fluffy guesses — this is your starting line.</p>
+    <p>It’s not a crystal ball, and it’s not pretending to be tailored to every company’s nuance. But it’s close —
+      industry benchmarks, smart assumptions, and proven ROI logic are built in to make the invisible… visible.</p>
+    <p>Use it to test scenarios. To validate instincts. To sense-check strategy. Whether you’re an owner, an operator,
+      or a leader who’s had enough of vague problems and fluffy guesses — this is your starting line.</p>
   </div>
 
   <div class="tabs" id="tabs"></div>
@@ -139,7 +154,6 @@
         const response = await fetch(calculators[key].file);
         const html = await response.text();
 
-        // Clean previous scripts
         const scripts = document.querySelectorAll('script[data-injected]');
         scripts.forEach(script => script.remove());
 
