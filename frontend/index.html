@@ -1,184 +1,149 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color: #000; color: #fff;">
 
 <head>
   <meta charset="UTF-8" />
-  <title>Candoo Clarity</title>
+  <title>Payroll Waste</title>
 
-  <!-- Font: Clean Load -->
+  <!-- Font: Preconnect + Display Swap -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
 
-  <style>
-    html {
-      background-color: #000;
-      background-image: url('background.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-
-    body {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 16px;
-      color: #fff;
-      margin: 40px;
-      padding: 0;
-    }
-
-    h1 {
-      font-size: 32px;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    .intro {
-      max-width: 800px;
-      margin: 20px auto 30px auto;
-      font-size: 16px;
-      line-height: 1.5;
-      color: #fff;
-    }
-
-    .intro h2 {
-      font-size: 22px;
-      margin-bottom: 10px;
-      color: #13dcff;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .tab {
-      padding: 12px 20px;
-      background-color: #000;
-      border: 2px solid #13dcff;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 16px;
-      color: #13dcff;
-      transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    }
-
-    .tab:hover {
-      background-color: #13dcff;
-      color: #000;
-    }
-
-    .tab.active {
-      background-color: #13dcff;
-      color: #000;
-    }
-
-    .content {
-      border: 1px solid #333;
-      padding: 20px;
-      border-radius: 12px;
-      background-color: #111;
-      max-width: 900px;
-      margin: auto;
-    }
-
-    .beta-tag {
-      font-size: 12px;
-      color: #13dcff;
-      margin-left: 6px;
-    }
-
-    a {
-      color: #13dcff;
-    }
-
-    a:hover {
-      color: #0fbcd8;
-    }
-  </style>
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="clarity-style.css">
 </head>
 
-<body>
-  <h1>Candoo Clarity</h1>
+<body style="background-color: #000; color: #fff; font-family: 'Montserrat', sans-serif;">
+  <a href="https://candooculture.webflow.io/" style="
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: inline-block;
+    z-index: 1000;
+  ">
+    <img src="frontend/candoologo.png" alt="Candoo Logo" style="
+      height: 40px;
+      width: auto;
+      opacity: 0.85;
+      transition: opacity 0.2s ease-in-out;
+    " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+  </a>
 
-  <div class="intro">
-    <h2>Behind the Numbers: Your Hidden Costs, Revealed</h2>
-    <p>In every business, inefficiencies, churn, and leadership gaps are silently bleeding time, money, and momentum.</p>
-    <p>We built this suite to surface invisible losses and offer a clear, actionable starting point.</p>
-    <p>It’s not a crystal ball, and it’s not pretending to be tailored to every company’s nuance. But it’s close —
-      industry benchmarks, smart assumptions, and proven ROI logic are built in to make the invisible… visible.</p>
-    <p>Use it to test scenarios. To validate instincts. To sense-check strategy. Whether you’re an owner, an operator,
-      or a leader who’s had enough of vague problems and fluffy guesses — this is your starting line.</p>
+  <h1>Payroll Waste</h1>
+
+  <div class="info-banner">
+    <strong>We’ve pre-filled your industry averages to save you time.</strong><br>
+    These reflect common performance in your sector.<br>
+    <em>Have your own data?</em> Just update the fields to sharpen your results.
   </div>
 
-  <div class="tabs" id="tabs"></div>
-  <div class="content" id="contentContainer">Loading...</div>
+  <div class="content">
+    <form id="efficiency-form">
+      <label for="industry">Industry:</label>
+      <select name="industry" id="industry" required>
+        <option value="">Select your industry</option>
+        <option value="Agriculture / Farming">Agriculture / Farming</option>
+        <option value="Construction">Construction</option>
+        <option value="Education & Training">Education & Training</option>
+        <option value="Finance & Insurance">Finance & Insurance</option>
+        <option value="Government / Public Sector">Government / Public Sector</option>
+        <option value="Healthcare">Healthcare</option>
+        <option value="Hospitality">Hospitality</option>
+        <option value="Integrated Services">Integrated Services</option>
+        <option value="Logistics & Transport">Logistics & Transport</option>
+        <option value="Manufacturing">Manufacturing</option>
+        <option value="Media / Creative / Comms">Media / Creative / Comms</option>
+        <option value="Non-Profit">Non-Profit</option>
+        <option value="Professional Services">Professional Services</option>
+        <option value="Real Estate & Property">Real Estate & Property</option>
+        <option value="Retail">Retail</option>
+        <option value="Technology / SaaS">Technology / SaaS</option>
+        <option value="Utilities / Energy / Waste">Utilities / Energy / Waste</option>
+      </select>
+
+      <label for="total_employees">Total Employees:</label>
+      <input type="number" name="total_employees" id="total_employees" required>
+
+      <label for="avg_salary">Average Annual Salary (AUD):</label>
+      <input type="number" name="avg_salary" id="avg_salary" required>
+
+      <label for="improvement_rate">Desired Improvement Rate (%):</label>
+      <input type="number" name="improvement_rate" id="improvement_rate" required>
+      <small>e.g., 10 = reduce inefficiency by 10%</small>
+
+      <div style="margin-top: 20px;">
+        <button type="submit">Calculate</button>
+      </div>
+    </form>
+
+    <p style="font-size:14px; color:#ccc; margin-top:10px; margin-bottom:20px;">
+      The following results reflect potential performance insights, based on typical industry benchmarks and Candoo’s proprietary logic.
+    </p>
+
+    <pre id="efficiency-result"></pre>
+  </div>
+
+  <div id="cta-bottom" class="cta">
+    <h3>🎯 There’s payroll hiding in plain sight. Let’s uncover it.</h3>
+    <a href="tel:+61455460580" class="cta-button">📞 Call us now!</a>
+    <a href="mailto:aaron@candooculture.com?subject=Help Me Understand What to Do Next" class="cta-button">📧 Prefer Email? Let’s Help You Understand What to Do Next</a>
+  </div>
 
   <script>
-    const calculators = {
-      team_efficiency: { name: "💸 Payroll Waste", file: "payroll-waste.html" }
-    };
+    (function () {
+      document.getElementById("efficiency-form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target).entries());
+        Object.keys(data).forEach(k => { if (!isNaN(data[k])) data[k] = Number(data[k]); });
+        data.last_updated = Date.now();
+        localStorage.setItem("payroll-waste-inputs", JSON.stringify(data));
 
-    function loadVisibility() {
-      const tabsDiv = document.getElementById('tabs');
-      const container = document.getElementById('contentContainer');
-      tabsDiv.innerHTML = '';
+        try {
+          const res = await fetch("https://candoo-clarity.onrender.com/run-payroll-waste", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+          const result = await res.json();
+          const resultBox = document.getElementById("efficiency-result");
 
-      Object.keys(calculators).forEach((key) => {
-        const tab = document.createElement('div');
-        tab.className = 'tab';
-        tab.innerHTML = calculators[key].name;
-        tab.onclick = () => switchTab(key, tab);
-        tabsDiv.appendChild(tab);
-      });
+          if (result.formatted_labels) {
+            const r = result.formatted_labels;
+            let out = `🧒 Snapshot of Monthly Team Drag\n\n`;
+            out += `💸 Total Waste: ${r["Total Monthly Loss"]}\n`;
+            out += ` • Inefficiency: ${r["Payroll Inefficiency Cost"]}\n`;
+            out += ` • Employee Churn Cost: ${r["Employee Churn Cost"]}\n\n`;
+            out += `✅ Based on Your Inputs\n`;
+            out += `🎯 Projected Monthly Savings: ${r["Direct Savings from Initiative"]}\n`;
+            out += ` • New Inefficiency Cost: ${r["Improved Inefficiency Cost"]}\n\n`;
+            out += `📊 Strategic Investment ROI with Candoo\n`;
+            out += `💰 Projected Return on Every $1 Invested: ${r["Return Per Dollar"]}\n`;
+            out += `⏱ Time to Recover Your Investment: ${r["Payback Period"]}\n\n`;
+            out += `📊 Benchmark Check — ${data.industry} Industry\n`;
+            result.benchmark_messages.forEach(msg => { out += `- ${msg}\n`; });
+            out += `\n🧠 Straight Talk\n`;
+            out += `You're currently leaking ${r["Total Monthly Loss"]} each month in team inefficiency and churn.\n`;
+            out += `Even a ${data.improvement_rate}% improvement unlocks ${r["Direct Savings from Initiative"]} — straight off your payroll costs.`;
 
-      const firstTab = tabsDiv.querySelector('.tab');
-      if (firstTab) {
-        firstTab.classList.add('active');
-        switchTab(Object.keys(calculators)[0], firstTab);
-      }
-    }
-
-    async function switchTab(key, tabEl) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tabEl.classList.add('active');
-
-      const container = document.getElementById('contentContainer');
-      container.innerHTML = '<p>Loading...</p>';
-
-      try {
-        const response = await fetch(calculators[key].file);
-        const html = await response.text();
-
-        const scripts = document.querySelectorAll('script[data-injected]');
-        scripts.forEach(script => script.remove());
-
-        container.innerHTML = html;
-
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        const newScripts = tempDiv.querySelectorAll('script');
-
-        newScripts.forEach(oldScript => {
-          const newScript = document.createElement('script');
-          if (oldScript.src) {
-            newScript.src = oldScript.src;
+            resultBox.innerText = out;
+            resultBox.style.display = "block";
+            document.getElementById("cta-bottom").style.display = "block";
+            setTimeout(() => {
+              resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
           } else {
-            newScript.textContent = oldScript.textContent;
+            resultBox.innerText = "Something went wrong.";
+            resultBox.style.display = "block";
           }
-          newScript.setAttribute('data-injected', 'true');
-          document.body.appendChild(newScript);
-        });
-
-      } catch (err) {
-        console.error("❌ Error loading module:", err);
-        container.innerHTML = '<p style="color:red;">Error loading module.</p>';
-      }
-    }
-
-    window.onload = loadVisibility;
+        } catch (err) {
+          console.error(err);
+          const resultBox = document.getElementById("efficiency-result");
+          resultBox.innerText = "API error. Try again.";
+          resultBox.style.display = "block";
+        }
+      });
+    })();
   </script>
 </body>
 
