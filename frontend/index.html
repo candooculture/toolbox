@@ -1,16 +1,23 @@
 <!DOCTYPE html>
-<html lang="en" style="background-color:#000; color:#fff;">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <title>Candoo Clarity</title>
 
-  <!-- Critical background & fallback fonts -->
+  <!-- Preload font and CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
+
   <style>
-    html, body {
+    body {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
       background-color: #000;
+      background-image: url('background.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
       color: #fff;
-      font-family: sans-serif;
       margin: 40px;
       padding: 0;
     }
@@ -18,14 +25,15 @@
     h1 {
       font-size: 32px;
       margin-bottom: 10px;
+      text-align: center;
     }
 
     .intro {
       max-width: 800px;
-      margin: 20px 0 30px 0;
+      margin: 20px auto 30px auto;
       font-size: 16px;
       line-height: 1.5;
-      color: #ccc;
+      color: #fff;
     }
 
     .intro h2 {
@@ -37,32 +45,40 @@
     .tabs {
       display: flex;
       gap: 10px;
-      margin-bottom: 20px;
+      margin: 0 auto 20px auto;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     .tab {
       padding: 12px 20px;
       background-color: #111;
-      border: 1px solid #333;
+      border: 1px solid #13dcff;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: bold;
+      font-weight: 600;
       font-size: 16px;
-      color: #fff;
+      color: #13dcff;
+      transition: background-color 0.2s ease-in-out, color 0.2s;
+    }
+
+    .tab:hover {
+      background-color: #0b0b0b;
     }
 
     .tab.active {
       background-color: #000;
-      border-bottom: 2px solid #13dcff;
+      border: 2px solid #13dcff;
       color: #13dcff;
     }
 
     .content {
-      border: 1px solid #333;
+      border: 1px solid #222;
       padding: 20px;
-      border-radius: 8px;
+      border-radius: 12px;
       background-color: #111;
-      color: #fff;
+      max-width: 900px;
+      margin: 0 auto;
     }
 
     .beta-tag {
@@ -71,17 +87,9 @@
       margin-left: 6px;
     }
   </style>
-
-  <!-- Load Montserrat without blocking render -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap">
-  </noscript>
 </head>
 
-<body style="background-color:#000; color:#fff; font-family: 'Montserrat', sans-serif;">
+<body>
   <h1>Candoo Clarity</h1>
 
   <div class="intro">
