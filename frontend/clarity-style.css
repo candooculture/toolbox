@@ -164,3 +164,34 @@ a button {
 .hidden {
     display: none !important;
 }
+
+/* === FIXES === */
+p, .info-banner, .cta h3 {
+    color: #fff !important;
+}
+
+.cta-button,
+a.cta-button,
+button,
+a button {
+    background-color: #13dcff !important;
+    color: #000 !important;
+    font-weight: bold;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.cta-button:hover,
+a.cta-button:hover,
+button:hover,
+a button:hover {
+    background-color: #0fbcd8 !important;
+    color: #000 !important;
+}
