@@ -1,10 +1,17 @@
-/* clarity-style.css */
+/* clarity-style.css - DARK THEME BUILD */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap');
+
 body {
-    font-family: 'DM Sans', sans-serif;
-    background: #fff;
-    color: #333;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #000;
+    background-image: url('background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #fff;
     padding: 40px 20px;
-    max-width: 600px;
+    max-width: 900px;
     margin: auto;
     line-height: 1.6;
 }
@@ -12,44 +19,148 @@ body {
 h1 {
     text-align: center;
     margin-bottom: 30px;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
+    color: #fff;
 }
 
 button {
-    background-color: #48f191;
-    color: #333;
-    font-weight: bold;
-    padding: 12px;
+    background-color: #13dcff;
+    color: #000;
+    font-weight: 600;
+    padding: 12px 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    width: 100%;
     font-size: 16px;
-    transition: background-color 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    box-shadow: 0 2px 5px rgba(19, 220, 255, 0.2);
 }
 
 button:hover {
-    background-color: #3bddad;
+    background-color: #0fbcd8;
+    box-shadow: 0 4px 10px rgba(19, 220, 255, 0.3);
 }
 
-input, select {
+input,
+select {
     width: 100%;
     padding: 12px;
     margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    border: 1px solid #444;
+    border-radius: 10px;
     font-size: 16px;
     box-sizing: border-box;
+    background-color: #111;
+    color: #fff;
+    transition: box-shadow 0.2s ease-in-out, border-color 0.2s;
 }
 
-input:focus, select:focus {
-    border-color: #48f191;
+input:focus,
+select:focus {
+    border-color: #13dcff;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(72, 241, 145, 0.2);
+    box-shadow: 0 0 0 3px rgba(19, 220, 255, 0.3);
 }
 
 input.prefilled {
-    background-color: #f9f9f9;
-    color: #555;
+    background-color: #222;
+    color: #aaa;
+}
+
+/* 🔥 TABS STYLE (GRID) */
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 14px 20px;
+    background-color: #111;
+    border: 1px solid #333;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    color: #fff;
+}
+
+.tab:hover {
+    background-color: #1a1a1a;
+    box-shadow: 0 2px 6px rgba(19, 220, 255, 0.2);
+}
+
+.tab.active {
+    background-color: #0f0f0f;
+    border: 2px solid #13dcff;
+    box-shadow: inset 0 1px 3px rgba(19, 220, 255, 0.15);
+    color: #13dcff;
+}
+
+.content {
+    background-color: #111;
+    border: 1px solid #222;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #111;
+    color: #fff;
+}
+
+th,
+td {
+    border: 1px solid #333;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #1a1a1a;
+    font-weight: bold;
+    color: #13dcff;
+}
+
+.status-message.success {
+    color: #13dcff;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+.status-message.error {
+    color: #ff4d4d;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+.edited-cell {
+    background-color: #333300;
+}
+
+.calculator-toggle {
+    margin-bottom: 10px;
+}
+
+a button {
+    width: auto;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.hidden {
+    display: none !important;
 }
