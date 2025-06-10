@@ -5,19 +5,29 @@
   <meta charset="UTF-8" />
   <title>Payroll Waste</title>
 
-  <!-- Prevent Flash of Unstyled Content (FOUC) -->
   <style>
-    body {
+    html, body {
       background-color: #000;
       color: #fff;
-      font-family: 'Montserrat', sans-serif;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h1, h3, label, small, select, input, button {
+      color: #fff;
+      font-family: sans-serif;
     }
   </style>
 
-  <link rel="preload" href="clarity-style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="clarity-style.css"></noscript>
+  <link rel="stylesheet" href="clarity-style.css" media="print" onload="this.media='all'">
 
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="clarity-style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap">
+  </noscript>
 </head>
 
 <body style="background-color: #000; color: #fff; font-family: 'Montserrat', sans-serif;">
