@@ -5,29 +5,13 @@
   <meta charset="UTF-8" />
   <title>Payroll Waste</title>
 
-  <style>
-    html, body {
-      background-color: #000;
-      color: #fff;
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    h1, h3, label, small, select, input, button {
-      color: #fff;
-      font-family: sans-serif;
-    }
-  </style>
+  <!-- Font: Preconnect + Display Swap -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="clarity-style.css" media="print" onload="this.media='all'">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript>
-    <link rel="stylesheet" href="clarity-style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap">
-  </noscript>
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="clarity-style.css">
 </head>
 
 <body style="background-color: #000; color: #fff; font-family: 'Montserrat', sans-serif;">
@@ -111,14 +95,14 @@
 
           if (result.formatted_labels) {
             const r = result.formatted_labels;
-            let out = `🧾 Snapshot of Monthly Team Drag\n\n`;
+            let out = `🧒 Snapshot of Monthly Team Drag\n\n`;
             out += `💸 Total Waste: ${r["Total Monthly Loss"]}\n`;
             out += ` • Inefficiency: ${r["Payroll Inefficiency Cost"]}\n`;
             out += ` • Employee Churn Cost: ${r["Employee Churn Cost"]}\n\n`;
             out += `✅ Based on Your Inputs\n`;
             out += `🎯 Projected Monthly Savings: ${r["Direct Savings from Initiative"]}\n`;
             out += ` • New Inefficiency Cost: ${r["Improved Inefficiency Cost"]}\n\n`;
-            out += `📈 Strategic Investment ROI with Candoo\n`;
+            out += `📊 Strategic Investment ROI with Candoo\n`;
             out += `💰 Projected Return on Every $1 Invested: ${r["Return Per Dollar"]}\n`;
             out += `⏱ Time to Recover Your Investment: ${r["Payback Period"]}\n\n`;
             out += `📊 Benchmark Check — ${data.industry} Industry\n`;
@@ -147,4 +131,5 @@
     })();
   </script>
 </body>
+
 </html>
