@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color:#000; color:#fff;">
 
 <head>
   <meta charset="UTF-8" />
   <title>Candoo Clarity</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Critical background & fallback fonts -->
   <style>
-    body {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 16px;
-      background-color: #ffffff;
-      color: #333333;
+    html, body {
+      background-color: #000;
+      color: #fff;
+      font-family: sans-serif;
       margin: 40px;
       padding: 0;
     }
@@ -25,13 +25,13 @@
       margin: 20px 0 30px 0;
       font-size: 16px;
       line-height: 1.5;
-      color: #555555;
+      color: #ccc;
     }
 
     .intro h2 {
       font-size: 22px;
       margin-bottom: 10px;
-      color: #333333;
+      color: #13dcff;
     }
 
     .tabs {
@@ -43,45 +43,53 @@
 
     .tab {
       padding: 12px 20px;
-      background-color: #f0f0f0;
-      border: 1px solid #ccc;
+      background-color: #111;
+      border: 1px solid #333;
       cursor: pointer;
       font-weight: bold;
       font-size: 16px;
+      color: #fff;
     }
 
     .tab.active {
-      background-color: #ffffff;
-      border-bottom: 2px solid #48f191;
+      background-color: #000;
+      border-bottom: 2px solid #13dcff;
+      color: #13dcff;
     }
 
     .content {
-      border: 1px solid #ccc;
+      border: 1px solid #333;
       padding: 20px;
       border-radius: 8px;
-      background-color: #fff;
+      background-color: #111;
+      color: #fff;
     }
 
     .beta-tag {
       font-size: 12px;
-      color: #48f191;
+      color: #13dcff;
       margin-left: 6px;
     }
   </style>
+
+  <!-- Load Montserrat without blocking render -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap">
+  </noscript>
 </head>
 
-<body>
+<body style="background-color:#000; color:#fff; font-family: 'Montserrat', sans-serif;">
   <h1>Candoo Clarity</h1>
 
   <div class="intro">
     <h2>Behind the Numbers: Your Hidden Costs, Revealed</h2>
-    <p>In every business, inefficiencies, churn, and leadership gaps are silently bleeding time, money, and momentum.
-    </p>
+    <p>In every business, inefficiencies, churn, and leadership gaps are silently bleeding time, money, and momentum.</p>
     <p>We built this suite to surface invisible losses and offer a clear, actionable starting point.</p>
-    <p>It’s not a crystal ball, and it’s not pretending to be tailored to every company’s nuance. But it’s close —
-      industry benchmarks, smart assumptions, and proven ROI logic are built in to make the invisible… visible.</p>
-    <p>Use it to test scenarios. To validate instincts. To sense-check strategy. Whether you’re an owner, an operator,
-      or a leader who’s had enough of vague problems and fluffy guesses — this is your starting line.</p>
+    <p>It’s not a crystal ball, and it’s not pretending to be tailored to every company’s nuance. But it’s close — industry benchmarks, smart assumptions, and proven ROI logic are built in to make the invisible… visible.</p>
+    <p>Use it to test scenarios. To validate instincts. To sense-check strategy. Whether you’re an owner, an operator, or a leader who’s had enough of vague problems and fluffy guesses — this is your starting line.</p>
   </div>
 
   <div class="tabs" id="tabs"></div>
