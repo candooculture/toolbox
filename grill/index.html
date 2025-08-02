@@ -67,7 +67,7 @@
       let visibleKeys = [];
 
       try {
-        const res = await fetch('https://toolbox-98se.onrender.com/admin/get-visibility');
+        const res = await fetch('https://candoo-clarity.onrender.com/admin/get-visibility');
         const data = await res.json();
         if (data.status === 'success' && Array.isArray(data.data)) {
           visibleKeys = data.data
