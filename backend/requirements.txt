@@ -1,8 +1,0 @@
-fastapi==0.115.12
-pydantic==2.11.4
-pydantic_core==2.33.2
-python-dotenv==1.1.0
-uvicorn==0.34.2
-pandas==2.2.3         # Only keep if benchmark loading uses it
-PyYAML==6.0.2         # Only keep if you're using visibility_settings.json
-python-dateutil==2.9.0.post0
