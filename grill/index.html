@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Candoo Clarity Toolbox</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="clarity-style.css">
+</head>
+
+<body>
+  <div class="logo">
+  <a href="https://candooculture.com/">
+    <img src="candoologo.png" alt="Candoo Logo">
+  </a>
+</div>
+
+  <h1>Candoo Clarity Toolbox</h1>
+
+  <div class="intro">
+    <h2>Behind the Numbers: Your Hidden Costs, Revealed</h2>
+    <p>This toolbox was built for one reason - Clarity.</p>
+    <p>In every business, inefficiencies, churn, and leadership gaps are silently bleeding time, money, and momentum.</p>
+    <p>We built this suite to surface invisible losses and offer a clear, actionable starting point.</p>
+    <p>It’s not a crystal ball, and it’s not pretending to be tailored to every company’s nuance. But it’s close -
+      industry benchmarks, smart assumptions, and proven ROI logic are built in to make the invisible… visible.</p>
+    <p>Use it to test scenarios. To validate instincts. To sense-check strategy. Whether you’re an owner, an operator,
+      or a leader who’s had enough of vague problems and fluffy guesses - this is your starting line.</p>
+  </div>
+
+  <div class="ors-warning">
+    <h3>📘 Before You Begin</h3>
+    <ul>
+      <li>✅ Complete all <strong>five diagnostic modules</strong> before generating your Operational Risk Report. 📩</li>
+      <li>⚠️ Your answers may <strong>not be saved permanently</strong>. If you leave a module before finishing, your data may be lost.</li>
+      <li>🔄 Need to start over? Use the <strong>"Reset All Results"</strong> button to clear your data and begin again.</li>
+    </ul>
+  </div>
+  
+  <div class="reset-wrapper">
+    <button id="resetAllBtn" class="reset-button">
+      🚨 Reset All Results 🚨
+    </button>
+  </div>
+
+  <div class="module-wrapper">
+    <div class="tabs" id="tabs"></div>
+    <div class="content" id="contentContainer">Loading...</div>
+  </div>
+
+  <script>
+    const calculators = {
+      team_efficiency: { name: "💸 Payroll Waste", file: "payroll-waste.html" },
+      customer_churn: { name: "📉 Customer Churn", file: "customer-churn.html" },
+      leadership_drag: { name: "🧠 Leadership Drag", file: "leadership-drag.html" },
+      workforce_productivity: { name: "📈 Workforce Productivity", file: "workforce-productivity.html" },
+      productivity_dive: { name: "🔍 Productivity Deep Dive", file: "productivity-dive.html" },
+      operational_risk: { name: "🔥 Operational Risk", file: "operational-risk.html" },
+      __admin__: { name: "⚙️ Admin", file: "admin.html", protected: true }
+    };
+
+    async function loadVisibility() {
+      const tabsDiv = document.getElementById('tabs');
+      const container = document.getElementById('contentContainer');
+      tabsDiv.innerHTML = '';
+
+      let visibleKeys = [];
+
+      try {
+        const res = await fetch('https://testing-gh0h.onrender.com/admin/get-visibility');
+        const data = await res.json();
+        if (data.status === 'success' && Array.isArray(data.data)) {
+          visibleKeys = data.data
+            .filter(item => item.visible)
+            .map(item => item.calculator);
+        }
+      } catch (err) {
+        console.warn("⚠️ Could not load visibility settings from backend. Defaulting to all.");
+        visibleKeys = Object.keys(calculators).filter(k => !calculators[k].protected);
+      }
+
+      Object.keys(calculators).forEach((key) => {
+        if (!visibleKeys.includes(key) && key !== '__admin__') return;
+
+        const { name } = calculators[key];
+        const tab = document.createElement('div');
+        tab.className = key === '__admin__' ? 'tab admin-tab' : 'tab';
+        tab.innerHTML = name;
+        tab.onclick = () => switchTab(key, tab);
+        tabsDiv.appendChild(tab);
+      });
+
+      const firstKey = visibleKeys.find(k => k !== '__admin__');
+      const firstTab = tabsDiv.querySelector('.tab');
+      if (firstTab && firstKey) {
+        firstTab.classList.add('active');
+        switchTab(firstKey, firstTab);
+      }
+    }
+
+    async function switchTab(key, tabEl) {
+      const module = calculators[key];
+      if (!module) return;
+
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tabEl.classList.add('active');
+
+      const container = document.getElementById('contentContainer');
+      container.innerHTML = '<p>Loading...</p>';
+
+      if (module.protected) {
+        const password = prompt("Enter admin password:");
+        if (password !== "toolbox12103032") {
+          container.innerHTML = '<p style="color:red;">Access denied.</p>';
+          return;
+        }
+      }
+
+      try {
+        const response = await fetch(module.file);
+        const html = await response.text();
+
+        document.querySelectorAll('script[data-injected]').forEach(script => script.remove());
+        container.innerHTML = html;
+        document.querySelector('.intro')?.classList.remove('hidden');
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        tempDiv.querySelectorAll('script').forEach(oldScript => {
+          const newScript = document.createElement('script');
+          if (oldScript.src) {
+            newScript.src = oldScript.src;
+          } else {
+            newScript.textContent = oldScript.textContent;
+          }
+          newScript.setAttribute('data-injected', 'true');
+          document.body.appendChild(newScript);
+        });
+
+      } catch (err) {
+        console.error("❌ Error loading module:", err);
+        container.innerHTML = '<p style="color:red;">Error loading module.</p>';
+      }
+    }
+
+    window.onload = loadVisibility;
+  </script>
+
+  <script>
+    document.getElementById('resetAllBtn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear all module results? This cannot be undone.')) {
+        const keysToClear = [
+          'payroll-waste-inputs',
+          'customer-churn-inputs',
+          'leadership-drag-inputs',
+          'workforce-productivity-inputs',
+          'productivity-deep-dive-inputs',
+          'industry'
+        ];
+        keysToClear.forEach(key => localStorage.removeItem(key));
+        location.reload();
+      }
+    });
+  </script>
+</body>
+
+</html>

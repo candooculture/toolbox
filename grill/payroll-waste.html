@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head><meta charset="utf-8"/>
+<title>Payroll Waste</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="clarity-style.css" rel="stylesheet"/></head>
+<body>
+<h1>Payroll Waste</h1>
+<div class="info-banner">
+<strong>We’ve pre-filled your industry averages to save you time.</strong><br/>
+    These reflect common performance in your sector.<br/>
+<em>Have your own data?</em> Just update the fields to sharpen your results.
+  </div>
+<form id="efficiency-form">
+<label for="industry">Industry:</label>
+<select id="industry" name="industry" required="">
+<option value="">Select your industry</option>
+<option value="Agriculture / Farming">Agriculture / Farming</option>
+<option value="Construction">Construction</option>
+<option value="Education &amp; Training">Education &amp; Training</option>
+<option value="Finance &amp; Insurance">Finance &amp; Insurance</option>
+<option value="Government / Public Sector">Government / Public Sector</option>
+<option value="Healthcare">Healthcare</option>
+<option value="Hospitality">Hospitality</option>
+<option value="Integrated Services">Integrated Services</option>
+<option value="Logistics &amp; Transport">Logistics &amp; Transport</option>
+<option value="Manufacturing">Manufacturing</option>
+<option value="Media / Creative / Comms">Media / Creative / Comms</option>
+<option value="Non-Profit">Non-Profit</option>
+<option value="Professional Services">Professional Services</option>
+<option value="Real Estate &amp; Property">Real Estate &amp; Property</option>
+<option value="Retail">Retail</option>
+<option value="Technology / SaaS">Technology / SaaS</option>
+<option value="Utilities / Energy / Waste">Utilities / Energy / Waste</option>
+</select>
+<label for="total_employees">Total Employees:</label>
+<input id="total_employees" name="total_employees" required="" type="number"/>
+<label for="avg_salary">Average Annual Salary (AUD):</label>
+<input id="avg_salary" name="avg_salary" required="" type="number"/>
+<label for="improvement_rate">Desired Improvement Rate (%):</label>
+<input id="improvement_rate" name="improvement_rate" required="" type="number"/>
+<small>e.g., 10 = reduce inefficiency by 10%</small>
+<button type="submit">Calculate</button>
+</form>
+<p class="benchmark-note">
+    The following results reflect potential performance insights, based on typical industry benchmarks and Candoo’s proprietary logic.
+  </p>
+<pre id="efficiency-result"></pre>
+<div class="cta" id="cta-bottom">
+<h3>🎯 There’s payroll hiding in plain sight. Let’s uncover it.</h3>
+<button onclick="window.location.href='tel:+61455460580'">📞 Book a Strategy Call</button>
+<button onclick="window.location.href='mailto:aaron@candooculture.com?subject=Help Me Understand What to Do Next'">
+      📧 Prefer Email? Let’s Help You Understand What to Do Next
+    </button>
+</div>
+<script>
+    (() => {
+      const MODULE = "payroll-waste";
+      const API_BASE = "https://testing-gh0h.onrender.com";
+
+      const form = document.getElementById("efficiency-form");
+      const industrySelect = document.getElementById("industry");
+      const resultBox = document.getElementById("efficiency-result");
+      const cta = document.getElementById("cta-bottom");
+
+      // Industry sync (single-direction from saved localStorage value)
+      const saved = localStorage.getItem("industry");
+      if (saved) industrySelect.value = saved;
+
+      industrySelect.addEventListener("change", () => {
+        localStorage.setItem("industry", industrySelect.value);
+      });
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        resultBox.style.display = "none";
+        cta.style.display = "none";
+
+        const data = Object.fromEntries(new FormData(form).entries());
+        Object.keys(data).forEach(k => { if (!isNaN(data[k])) data[k] = Number(data[k]); });
+        data.last_updated = Date.now();
+        localStorage.setItem(`${MODULE}-inputs`, JSON.stringify(data));
+        window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new CustomEvent("module-status-updated"));
+
+        try {
+          const res = await fetch(`${API_BASE}/run-payroll-waste`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const result = await res.json();
+          if (result.formatted_labels) {
+            const r = result.formatted_labels;
+            let out = `🧾 Snapshot of Monthly Team Drag\n\n`;
+            out += `💸 Total Waste: ${r["Total Monthly Loss"]}\n`;
+            out += ` • Inefficiency: ${r["Payroll Inefficiency Cost"]}\n`;
+            out += ` • Employee Churn Cost: ${r["Employee Churn Cost"]}\n\n`;
+            out += `✅ Based on Your Inputs\n`;
+            out += `🎯 Projected Monthly Savings: ${r["Direct Savings from Initiative"]}\n`;
+            out += ` • New Inefficiency Cost: ${r["Improved Inefficiency Cost"]}\n\n`;
+            out += `📈 Strategic Investment ROI with Candoo\n`;
+            out += `💰 Projected Return on Every $1 Invested: ${r["Return Per Dollar"]}\n`;
+            out += `⏱ Time to Recover Your Investment: ${r["Payback Period"]}\n\n`;
+            out += `📊 Benchmark Check — ${data.industry} Industry\n`;
+            result.benchmark_messages.forEach(msg => { out += `- ${msg}\n`; });
+            out += `\n🧠 Straight Talk\n`;
+            out += `You're currently leaking ${r["Total Monthly Loss"]} each month in team inefficiency and churn.\n`;
+            out += `Even a ${data.improvement_rate}% improvement unlocks ${r["Direct Savings from Initiative"]} — straight off your payroll costs.`;
+
+            resultBox.innerText = out;
+            resultBox.style.display = "block";
+            cta.style.display = "block";
+          } else {
+            resultBox.innerText = "Something went wrong.";
+            resultBox.style.display = "block";
+          }
+        } catch (err) {
+          console.error(`[${MODULE}] API error`, err);
+          resultBox.innerText = "API error. Try again.";
+          resultBox.style.display = "block";
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head><meta charset="utf-8"/>
+<title>Workforce Productivity</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="clarity-style.css" rel="stylesheet"/></head>
+<body>
+<h1>Workforce Productivity</h1>
+<div class="info-banner">
+<strong>We’ve pre-filled your industry averages to save you time.</strong><br/>
+    These reflect common performance in your sector.<br/>
+<em>Have your own data?</em> Just update the fields to sharpen your results.
+  </div>
+<form id="productivity-form">
+<label for="industry">Industry:</label>
+<select id="industry" name="industry" required="">
+<option value="">Select your industry</option>
+<option value="Agriculture / Farming">Agriculture / Farming</option>
+<option value="Construction">Construction</option>
+<option value="Education &amp; Training">Education &amp; Training</option>
+<option value="Finance &amp; Insurance">Finance &amp; Insurance</option>
+<option value="Government / Public Sector">Government / Public Sector</option>
+<option value="Healthcare">Healthcare</option>
+<option value="Hospitality">Hospitality</option>
+<option value="Integrated Services">Integrated Services</option>
+<option value="Logistics &amp; Transport">Logistics &amp; Transport</option>
+<option value="Manufacturing">Manufacturing</option>
+<option value="Media / Creative / Comms">Media / Creative / Comms</option>
+<option value="Non-Profit">Non-Profit</option>
+<option value="Professional Services">Professional Services</option>
+<option value="Real Estate &amp; Property">Real Estate &amp; Property</option>
+<option value="Retail">Retail</option>
+<option value="Technology / SaaS">Technology / SaaS</option>
+<option value="Utilities / Energy / Waste">Utilities / Energy / Waste</option>
+</select>
+<label for="total_revenue">Total Annual Revenue (AUD):</label>
+<input id="total_revenue" name="total_revenue" required="" type="number"/>
+<label for="payroll_cost">Total Payroll Cost (AUD):</label>
+<input id="payroll_cost" name="payroll_cost" required="" type="number"/>
+<label for="total_employees">Number of Employees:</label>
+<input id="total_employees" name="total_employees" required="" type="number"/>
+<label for="productive_hours">Total Productive Hours Worked (All Staff, This Month):</label>
+<input id="productive_hours" name="productive_hours" required="" type="number"/>
+<small>e.g., 15 staff × 140 hrs = 2,100 hrs</small>
+<label for="target_hours">Target Hours per Employee:</label>
+<input id="target_hours" name="target_hours_per_employee" required="" type="number"/>
+<span class="benchmark-label" id="label-hours">(Using industry average)</span>
+<label for="absenteeism_days">Total Days Lost to Absenteeism (All Staff, Per Month):</label>
+<input id="absenteeism_days" name="absenteeism_days" required="" type="number"/>
+<span class="benchmark-label" id="label-absent">(Using industry average)</span>
+<small>e.g., if 5 employees took 1 sick day each, enter 5</small>
+<label for="overtime_hours">Total Overtime Hours Paid (This Month, All Staff):</label>
+<input id="overtime_hours" name="overtime_hours" type="number"/>
+<small>Include paid overtime only, not time in lieu</small>
+<button type="submit">Calculate</button>
+</form>
+<p class="benchmark-note">
+    The following results reflect potential performance insights, based on typical industry benchmarks and Candoo’s proprietary logic.
+  </p>
+<pre id="productivity-result"></pre>
+<div class="cta" id="cta-bottom">
+<h3>🌟 Seeing the numbers is the start. Now turn them into action.</h3>
+<button onclick="window.location.href='tel:+61YOURNUMBER'">📞 Book a Strategy Call</button>
+<button onclick="window.location.href='mailto:admin@candooculture.com?subject=Workforce%20Productivity%20-%20Next%20Steps'">
+      📧 Prefer Email? Let’s Help You Understand What to Do Next
+    </button>
+</div>
+<script>
+    (() => {
+      const MODULE = "workforce-productivity";
+      const API_BASE = "https://testing-gh0h.onrender.com";
+      const form = document.getElementById("productivity-form");
+      const industrySelect = document.getElementById("industry");
+      const targetInput = document.getElementById("target_hours");
+      const absentInput = document.getElementById("absenteeism_days");
+      const labelHours = document.getElementById("label-hours");
+      const labelAbsent = document.getElementById("label-absent");
+      const resultBox = document.getElementById("productivity-result");
+      const cta = document.getElementById("cta-bottom");
+
+      function markPrefilled(input, label, value) {
+        if (input.value.trim() === "") {
+          input.value = value;
+          input.classList.add("prefilled");
+          label.style.display = "block";
+        }
+      }
+
+      function clearOnEdit(input, label) {
+        input.addEventListener("input", () => {
+          input.classList.remove("prefilled");
+          label.style.display = "none";
+        });
+      }
+
+      clearOnEdit(targetInput, labelHours);
+      clearOnEdit(absentInput, labelAbsent);
+
+      async function fetchBenchmarks(industry) {
+        try {
+          const res = await fetch(`${API_BASE}/get-industry-benchmarks?industry=${encodeURIComponent(industry)}`);
+          const data = await res.json();
+          if (data.target_hours_per_employee != null) markPrefilled(targetInput, labelHours, data.target_hours_per_employee);
+          if (data.absenteeism_days != null) markPrefilled(absentInput, labelAbsent, data.absenteeism_days);
+        } catch (err) {
+          console.error(`[${MODULE}] Benchmark fetch failed`, err);
+        }
+      }
+
+      industrySelect.addEventListener("change", () => {
+        const selected = industrySelect.value;
+        localStorage.setItem("industry", selected);
+
+        document.querySelectorAll('select[name="industry"]').forEach(dropdown => {
+          if (dropdown !== industrySelect) dropdown.value = selected;
+        });
+
+        fetchBenchmarks(selected);
+        window.dispatchEvent(new CustomEvent("benchmark-autofill", {
+          detail: { source: MODULE, industry: selected }
+        }));
+      });
+
+      window.addEventListener("benchmark-autofill", e => {
+        const { source, industry } = e.detail || {};
+        if (source === MODULE) return;
+        if (industrySelect.value !== industry) {
+          industrySelect.value = industry;
+          fetchBenchmarks(industry);
+        }
+      });
+
+      const saved = localStorage.getItem("industry");
+      if (saved) {
+        industrySelect.value = saved;
+        fetchBenchmarks(saved);
+      }
+
+      let lastIndustry = saved || "";
+      setInterval(() => {
+        const current = localStorage.getItem("industry");
+        if (current && current !== lastIndustry) {
+          lastIndustry = current;
+          industrySelect.value = current;
+          fetchBenchmarks(current);
+        }
+      }, 1000);
+
+      form.addEventListener("submit", async e => {
+        e.preventDefault();
+        resultBox.style.display = "none";
+        cta.style.display = "none";
+
+        const data = Object.fromEntries(new FormData(form).entries());
+        Object.keys(data).forEach(k => { if (!isNaN(data[k])) data[k] = Number(data[k]); });
+        data.last_updated = Date.now();
+        localStorage.setItem(`${MODULE}-inputs`, JSON.stringify(data));
+        window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new CustomEvent("module-status-updated"));
+
+        try {
+          const res = await fetch(`${API_BASE}/run-workforce-productivity`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const result = await res.json();
+          if (result.formatted_labels) {
+            const r = result.formatted_labels;
+            let out = `📊 Workforce Productivity Overview\n\n`;
+            out += `📜 Annual Revenue per Employee: ${r.revenue_per_employee}\n`;
+            out += `💪 Payroll Efficiency: ${r.payroll_efficiency}\n\t(Each $1 spent on payroll generates ${(parseFloat(r.payroll_efficiency) / 100).toFixed(2)} in revenue)\n\n`;
+            out += `🎗️ Utilisation Rate: ${r.utilisation_rate} of target hours used\n`;
+            out += `🛌 Absenteeism Rate: ${r.absenteeism_rate} of total monthly workdays\n\t⚠️ Confirm: days lost is total across entire workforce\n`;
+            out += `🔥 Overtime Rate: ${r.overtime_rate} of productive hours\n\n`;
+            out += `🚀 Opportunity Gain (from 5% Utilisation Uplift): ${r.opportunity_gain}\n\tAssumes additional 5% of target hours at current revenue/hour`;
+
+            resultBox.innerText = out;
+            resultBox.style.display = "block";
+            cta.style.display = "block";
+          } else {
+            resultBox.innerText = "Something went wrong.";
+            resultBox.style.display = "block";
+          }
+        } catch (err) {
+          console.error(`[${MODULE}] API error`, err);
+          resultBox.innerText = "API error. Try again.";
+          resultBox.style.display = "block";
+        }
+      });
+    })();
+  </script>
+<script src="clarity-core.js"></script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+/* clarity-style.css - DARK THEME BUILD with Shared Background Image */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap');
+
+/* GLOBAL BACKGROUND */
+html {
+  background-color: #000;
+  background-image: url('background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: -1;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  color: #fff;
+  padding: 40px 20px;
+  max-width: 900px;
+  margin: auto;
+  line-height: 1.6;
+  background: transparent;
+}
+
+/* LOGO */
+.logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+.logo img {
+  width: 60px;
+  max-width: 25vw;
+  height: auto;
+  opacity: 0.9;
+  transition: opacity 0.2s ease-in-out;
+}
+.logo img:hover {
+  opacity: 1;
+}
+
+/* TYPOGRAPHY */
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+}
+h2 {
+  color: #13dcff !important;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.content p,
+.intro p {
+  color: #ccc;
+}
+
+/* BUTTONS */
+button,
+a button {
+  background-color: #13dcff;
+  color: #000;
+  font-weight: 600;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  box-shadow: 0 2px 5px rgba(19, 220, 255, 0.2);
+  display: inline-block;
+  margin-top: 16px;
+  min-width: 140px;
+}
+button:hover,
+a button:hover {
+  background-color: #0fbcd8;
+  box-shadow: 0 4px 10px rgba(19, 220, 255, 0.3);
+}
+
+/* FORM FIELDS */
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #444;
+  border-radius: 10px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: #111;
+  color: #fff;
+  transition: box-shadow 0.2s ease-in-out, border-color 0.2s;
+}
+input:focus,
+select:focus {
+  border-color: #13dcff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(19, 220, 255, 0.3);
+}
+input.prefilled {
+  background-color: #222;
+  color: #aaa;
+}
+small,
+.form-hint {
+  display: block;
+  margin: 12px 0 20px;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+/* TABS */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  justify-content: center;
+  margin: 30px auto;
+  max-width: 800px;
+}
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 14px 20px;
+  background-color: #111;
+  border: 1px solid #333;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  color: #fff;
+}
+.tab:hover {
+  background-color: #1a1a1a;
+  box-shadow: 0 2px 6px rgba(19, 220, 255, 0.2);
+}
+.tab.active {
+  background-color: #0f0f0f;
+  border: 2px solid #13dcff;
+  box-shadow: inset 0 1px 3px rgba(19, 220, 255, 0.15);
+  color: #13dcff;
+}
+
+/* CONTENT */
+.content {
+  background-color: #333;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.benchmark-note {
+  font-size: 14px;
+  color: #aaa;
+  margin-top: 12px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* MODULES + MISC */
+.cta-button + .cta-button {
+  margin-left: 20px;
+}
+.status-message.success {
+  color: #13dcff;
+  font-weight: 500;
+  margin-top: 10px;
+}
+.status-message.error {
+  color: #ff4d4d;
+  font-weight: 500;
+  margin-top: 10px;
+}
+.edited-cell {
+  background-color: #333300;
+}
+.reset-wrapper {
+  text-align: center;
+  margin-top: 20px;
+}
+.module-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 30px;
+  width: 100%;
+}
+
+/* INFO BOX */
+.ors-warning {
+  background-color: rgba(255, 243, 205, 0.07);
+  color: #fff;
+  border-left: 4px solid #13dcff;
+  padding: 24px 28px;
+  border-radius: 12px;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 40px 0;
+  box-shadow: 0 0 8px rgba(19, 220, 255, 0.1);
+}
+.ors-warning h3 {
+  margin-top: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #13dcff;
+}
+.ors-warning ul {
+  padding-left: 1.4rem;
+  margin: 0;
+}
+.ors-warning li {
+  margin-bottom: 10px;
+}

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head><meta charset="utf-8"/>
+<title>Leadership Drag</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="clarity-style.css" rel="stylesheet"/></head>
+<body>
+<h1>Leadership Drag</h1>
+<div class="info-banner">
+<strong>We’ve pre-filled your industry averages to save you time.</strong><br/>
+    These reflect common performance in your sector.<br/>
+<em>Have your own data?</em> Just update the fields to sharpen your results.
+  </div>
+<form id="leadership-drag-form">
+<label for="industry">Industry:</label>
+<select id="industry" name="industry" required="">
+<option value="">Select your industry</option>
+<option value="Agriculture / Farming">Agriculture / Farming</option>
+<option value="Construction">Construction</option>
+<option value="Education &amp; Training">Education &amp; Training</option>
+<option value="Finance &amp; Insurance">Finance &amp; Insurance</option>
+<option value="Government / Public Sector">Government / Public Sector</option>
+<option value="Healthcare">Healthcare</option>
+<option value="Hospitality">Hospitality</option>
+<option value="Integrated Services">Integrated Services</option>
+<option value="Logistics &amp; Transport">Logistics &amp; Transport</option>
+<option value="Manufacturing">Manufacturing</option>
+<option value="Media / Creative / Comms">Media / Creative / Comms</option>
+<option value="Non-Profit">Non-Profit</option>
+<option value="Professional Services">Professional Services</option>
+<option value="Real Estate &amp; Property">Real Estate &amp; Property</option>
+<option value="Retail">Retail</option>
+<option value="Technology / SaaS">Technology / SaaS</option>
+<option value="Utilities / Energy / Waste">Utilities / Energy / Waste</option>
+</select>
+<label for="total_employees">Total Employees:</label>
+<input id="total_employees" name="total_employees" required="" type="number"/>
+<label for="avg_salary">Average Annual Salary (AUD):</label>
+<input id="avg_salary" name="avg_salary" required="" step="0.01" type="number"/>
+<small>Annual salary including super, across the team</small>
+<label for="leadership_drag">Estimated Leadership Drag (% of Salary Base):</label>
+<input id="leadership_drag" name="leadership_drag" required="" step="0.1" type="number"/>
+<span class="benchmark-label" id="label-leadership">(Using industry average)</span>
+<small>Estimate the % of total payroll lost to poor leadership impact</small>
+<button type="submit">Calculate</button>
+</form>
+<p class="benchmark-note">
+    The following results reflect potential performance insights, based on typical industry benchmarks and Candoo’s proprietary logic.
+  </p>
+<pre id="leadership-result"></pre>
+<div class="cta" id="cta-bottom">
+<h3>🎯 Want to fix the leak? It starts with clarity at the top.</h3>
+<button onclick="window.location.href='tel:+61YOURNUMBER'">📞 Book a Strategy Call</button>
+<button onclick="window.location.href='mailto:admin@candooculture.com?subject=Help Me Understand What to Do Next'">
+      📧 Prefer Email? Let’s Help You Understand What to Do Next
+    </button>
+</div>
+<script>
+    (() => {
+      const MODULE = "leadership-drag";
+      const API_BASE = "https://testing-gh0h.onrender.com";
+
+      const form = document.getElementById("leadership-drag-form");
+      const industrySelect = document.getElementById("industry");
+      const dragInput = document.getElementById("leadership_drag");
+      const labelDrag = document.getElementById("label-leadership");
+      const resultBox = document.getElementById("leadership-result");
+      const cta = document.getElementById("cta-bottom");
+
+      function markPrefilled(input, label, value) {
+        if (input.value.trim() === "") {
+          input.value = value;
+          input.classList.add("prefilled");
+          label.style.display = "block";
+        }
+      }
+
+      function clearOnEdit(input, label) {
+        input.addEventListener("input", () => {
+          input.classList.remove("prefilled");
+          label.style.display = "none";
+        });
+      }
+
+      clearOnEdit(dragInput, labelDrag);
+
+      async function fetchBenchmarks(industry) {
+        try {
+          const res = await fetch(`${API_BASE}/get-industry-benchmarks?industry=${encodeURIComponent(industry)}`);
+          const data = await res.json();
+          if (data.leadership_drag != null) markPrefilled(dragInput, labelDrag, data.leadership_drag);
+        } catch (err) {
+          console.error(`[${MODULE}] Benchmark fetch failed`, err);
+        }
+      }
+
+      industrySelect.addEventListener("change", () => {
+        const selected = industrySelect.value;
+        localStorage.setItem("industry", selected);
+
+        document.querySelectorAll('select[name="industry"]').forEach(dropdown => {
+          if (dropdown !== industrySelect) dropdown.value = selected;
+        });
+
+        fetchBenchmarks(selected);
+        window.dispatchEvent(new CustomEvent("benchmark-autofill", {
+          detail: { source: MODULE, industry: selected }
+        }));
+      });
+
+      window.addEventListener("benchmark-autofill", e => {
+        const { source, industry } = e.detail || {};
+        if (source === MODULE) return;
+
+        if (industrySelect.value !== industry) {
+          industrySelect.value = industry;
+          fetchBenchmarks(industry);
+        }
+      });
+
+      const saved = localStorage.getItem("industry");
+      if (saved) {
+        industrySelect.value = saved;
+        fetchBenchmarks(saved);
+      }
+
+      form.addEventListener("submit", async e => {
+        e.preventDefault();
+        resultBox.style.display = "none";
+        cta.style.display = "none";
+
+        const data = Object.fromEntries(new FormData(form).entries());
+        Object.keys(data).forEach(k => { if (!isNaN(data[k])) data[k] = Number(data[k]); });
+        data.last_updated = Date.now();
+        localStorage.setItem(`${MODULE}-inputs`, JSON.stringify(data));
+        window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new CustomEvent("module-status-updated"));
+
+        try {
+          const response = await fetch(`${API_BASE}/run-leadership-drag-calculator`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+          if (result.formatted_labels) {
+            const r = result.formatted_labels;
+            const dragRate = data.leadership_drag.toFixed(1);
+            const benchmarkRate = parseFloat(result.benchmark_messages[0]?.match(/average of (\d+\.?\d*)%/)?.[1] || 0);
+            const delta = (data.leadership_drag - benchmarkRate).toFixed(1);
+            const excessCost = r["Excess Drag Monthly Cost"] || "AUD $0";
+
+            let output = `💸 Leadership Drag\n`;
+            output += ` • Based on a ${dragRate}% impact factor across total salary base\n`;
+            output += `📉 Monthly Loss: ${r["Monthly Leadership Drag Loss"]}\n`;
+            output += `📅 Annual Loss: ${r["Annual Leadership Drag Loss"]}\n\n`;
+            output += `📊 Benchmark Check — ${data.industry} Industry\n`;
+            output += `- Your leadership drag rate: ${dragRate}%\n`;
+            output += `- Industry average: ${benchmarkRate}%\n`;
+            if (delta > 0) output += `- 🔺 You’re ${delta}% above the benchmark — that excess drag is costing you ${excessCost}/month\n`;
+
+            output += `\n🧠 Straight Talk\n`;
+            output += `You’re leaking ${r["Monthly Leadership Drag Loss"]} every month through leadership inefficiencies.\n`;
+            if (delta > 0) output += `Even a modest ${delta}% reduction could recapture over ${excessCost} — without adding a single new hire.\n`;
+
+            resultBox.innerText = output;
+            resultBox.style.display = "block";
+            cta.style.display = "block";
+          } else {
+            resultBox.innerText = "Something went wrong.";
+            resultBox.style.display = "block";
+          }
+        } catch (err) {
+          console.error(`[${MODULE}] API error`, err);
+          resultBox.innerText = "API error. Try again.";
+          resultBox.style.display = "block";
+        }
+      });
+    })();
+  </script>
+<script src="clarity-core.js"></script>
+</body>
+</html>

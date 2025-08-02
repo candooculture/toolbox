@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head><meta charset="utf-8"/>
+<title>Productivity Deep Dive</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="clarity-style.css" rel="stylesheet"/></head>
+<body>
+<h1>🚀 Productivity Deep Dive</h1>
+<div class="info-banner">
+<strong>We’ve pre-filled your industry averages to save you time.</strong><br/>
+    These reflect common performance in your sector.<br/>
+<em>Have your own data?</em> Just update the fields to sharpen your results.
+  </div>
+<form id="dive-form">
+<label for="industry">Industry:</label>
+<select id="industry" name="industry" required="">
+<option value="">Select your industry</option>
+<option value="Agriculture / Farming">Agriculture / Farming</option>
+<option value="Construction">Construction</option>
+<option value="Education &amp; Training">Education &amp; Training</option>
+<option value="Finance &amp; Insurance">Finance &amp; Insurance</option>
+<option value="Government / Public Sector">Government / Public Sector</option>
+<option value="Healthcare">Healthcare</option>
+<option value="Hospitality">Hospitality</option>
+<option value="Integrated Services">Integrated Services</option>
+<option value="Logistics &amp; Transport">Logistics &amp; Transport</option>
+<option value="Manufacturing">Manufacturing</option>
+<option value="Media / Creative / Comms">Media / Creative / Comms</option>
+<option value="Non-Profit">Non-Profit</option>
+<option value="Professional Services">Professional Services</option>
+<option value="Real Estate &amp; Property">Real Estate &amp; Property</option>
+<option value="Retail">Retail</option>
+<option value="Technology / SaaS">Technology / SaaS</option>
+<option value="Utilities / Energy / Waste">Utilities / Energy / Waste</option>
+</select>
+<label for="total_employees">Total Employees:</label>
+<input id="total_employees" name="total_employees" required="" type="number"/>
+<label for="avg_salary">Average Salary (AUD):</label>
+<input id="avg_salary" name="avg_salary" required="" type="number"/>
+<label for="absenteeism_days">Absenteeism Days / Month:</label>
+<input id="absenteeism_days" name="absenteeism_days" required="" type="number"/>
+<span class="benchmark-label" id="label-absent">(Using industry average)</span>
+<small>e.g., if 5 employees took 1 day off, enter 5</small>
+<label for="avg_hours">Average Hours Worked / Employee:</label>
+<input id="avg_hours" name="avg_hours" required="" type="number"/>
+<span class="benchmark-label" id="label-hours">(Using industry average)</span>
+<small>Monthly total hours typically expected per employee</small>
+<button type="submit">Calculate</button>
+</form>
+<p class="benchmark-note">
+    The following results reflect potential performance insights, based on typical industry benchmarks and Candoo’s proprietary logic.
+  </p>
+<pre id="dive-result"></pre>
+<div class="cta" id="cta-bottom">
+<h3>🌟 Discover where your team’s time is slipping — and what it’s costing you.</h3>
+<button onclick="window.location.href='https://calendly.com/candoo-culture/strategy'">📞 Book a Strategy Call</button>
+<button onclick="window.location.href='mailto:team@candooculture.com'">📧 Prefer Email? Let’s Help You Understand What to Do Next</button>
+</div>
+<script src="clarity-core.js"></script>
+<script>
+    (() => {
+      const MODULE = "productivity-deep-dive";
+      const API_BASE = "https://testing-gh0h.onrender.com";
+      const form = document.getElementById("dive-form");
+      const industrySelect = document.getElementById("industry");
+      const hoursInput = document.getElementById("avg_hours");
+      const absentInput = document.getElementById("absenteeism_days");
+      const labelHours = document.getElementById("label-hours");
+      const labelAbsent = document.getElementById("label-absent");
+      const resultBox = document.getElementById("dive-result");
+      const cta = document.getElementById("cta-bottom");
+
+      function markPrefilled(input, label, value) {
+        if (input.value.trim() === "") {
+          input.value = value;
+          input.classList.add("prefilled");
+          label.style.display = "block";
+        }
+      }
+
+      function clearOnEdit(input, label) {
+        input.addEventListener("input", () => {
+          input.classList.remove("prefilled");
+          label.style.display = "none";
+        });
+      }
+
+      clearOnEdit(hoursInput, labelHours);
+      clearOnEdit(absentInput, labelAbsent);
+
+      async function fetchBenchmarks(industry) {
+        try {
+          const res = await fetch(`${API_BASE}/get-industry-benchmarks?industry=${encodeURIComponent(industry)}`);
+          const data = await res.json();
+          if (data.target_hours_per_employee != null) markPrefilled(hoursInput, labelHours, data.target_hours_per_employee);
+          if (data.absenteeism_days != null) markPrefilled(absentInput, labelAbsent, data.absenteeism_days);
+        } catch (err) {
+          console.error(`[${MODULE}] Benchmark fetch error:`, err);
+        }
+      }
+
+      industrySelect.addEventListener("change", () => {
+        const selected = industrySelect.value;
+        localStorage.setItem("industry", selected);
+        document.querySelectorAll('select[name="industry"]').forEach(dropdown => {
+          if (dropdown !== industrySelect) dropdown.value = selected;
+        });
+        fetchBenchmarks(selected);
+        window.dispatchEvent(new CustomEvent("benchmark-autofill", {
+          detail: { source: MODULE, industry: selected }
+        }));
+      });
+
+      window.addEventListener("benchmark-autofill", e => {
+        const { source, industry } = e.detail || {};
+        if (source === MODULE) return;
+        if (industrySelect.value !== industry) {
+          industrySelect.value = industry;
+          fetchBenchmarks(industry);
+        }
+      });
+
+      const saved = localStorage.getItem("industry");
+      if (saved) {
+        industrySelect.value = saved;
+        fetchBenchmarks(saved);
+      }
+
+      let lastIndustry = saved || "";
+      setInterval(() => {
+        const current = localStorage.getItem("industry");
+        if (current && current !== lastIndustry) {
+          lastIndustry = current;
+          industrySelect.value = current;
+          fetchBenchmarks(current);
+        }
+      }, 1000);
+
+      form.addEventListener("submit", async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(form).entries());
+        Object.keys(data).forEach(k => { if (!isNaN(data[k])) data[k] = Number(data[k]); });
+        data.last_updated = Date.now();
+        localStorage.setItem(`${MODULE}-inputs`, JSON.stringify(data));
+        window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new CustomEvent("module-status-updated"));
+
+        try {
+          const res = await fetch(`${API_BASE}/run-productivity-dive`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const result = await res.json();
+
+          if (result.formatted_labels) {
+            const r = result.formatted_labels;
+            let output = `💰 Absenteeism Cost: ${r["Absenteeism Cost"]}\n`;
+            output += `🔧 Utilisation Gap: ${r["Utilisation Gap"]}\n`;
+            output += `📉 Output Loss: ${r["Output Loss from Under-utilisation"]}\n`;
+            output += `📊 Output per Employee: ${r["Output per Employee"]}\n\n`;
+            output += `📊 Benchmark Check — ${data.industry} Industry\n`;
+            result.benchmark_messages.forEach(msg => output += `- ${msg}\n`);
+            output += `\n🧠 Straight Talk\n${result.straight_talk}`;
+
+            resultBox.innerText = output;
+            resultBox.style.display = "block";
+            cta.style.display = "block";
+          } else {
+            resultBox.innerText = "Something went wrong.";
+            resultBox.style.display = "block";
+          }
+        } catch (err) {
+          console.error(`[${MODULE}] API error`, err);
+          resultBox.innerText = "API error. Try again.";
+          resultBox.style.display = "block";
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
