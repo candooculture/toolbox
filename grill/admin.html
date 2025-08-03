@@ -1,197 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Admin Panel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     body {
-      font-family: 'Montserrat', sans-serif;
-      background-color: #000;
-      color: #fff;
-      padding: 40px 20px;
-      max-width: 960px;
-      margin: auto;
+      font-family: 'DM Sans', sans-serif;
+      background-color: #2b2b2b;
+      color: #00e0ff;
+      padding: 2rem;
     }
 
-    h1, h2 {
-      color: #48f191;
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .section {
+      margin-bottom: 3rem;
+    }
+
+    .btn-group {
+      margin-top: 1rem;
+    }
+
+    button {
+      background-color: #00e0ff;
+      color: #1a1a1a;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      margin-right: 1rem;
+      cursor: pointer;
+    }
+
+    .status-message {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      border: 1px solid #444;
+      border-radius: 6px;
     }
 
     table {
-      width: 100%;
+      width: max-content;
       border-collapse: collapse;
-      margin-bottom: 40px;
+      min-width: 1200px;
     }
 
     th, td {
-      padding: 12px;
-      border: 1px solid #48f191;
-      text-align: left;
+      padding: 0.6rem;
+      border: 1px solid #333;
+      text-align: center;
+      background-color: #1a1a1a;
+      color: #fff;
     }
 
     th {
       background-color: #111;
+      color: #00e0ff;
     }
 
     input {
-      width: 100%;
-      padding: 8px;
-      background-color: #111;
-      border: 1px solid #444;
+      padding: 0.4rem;
+      border-radius: 4px;
+      border: 1px solid #555;
+      background-color: #222;
       color: #fff;
+      text-align: center;
+      width: 80px;
     }
 
-    .edited-cell {
-      background-color: #2d2d00;
+    .toggle-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      background-color: #1e1e1e;
+      padding: 0.5rem 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 4px;
     }
 
-    .btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      background-color: #48f191;
-      color: #000;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s ease-in-out;
-      margin: 10px 6px 30px 0;
-    }
-
-    .btn:hover {
-      background-color: #3bd8aa;
-    }
-
-    .visibility-container {
-      margin-bottom: 50px;
-    }
-
-    label {
-      margin-right: 20px;
-    }
-
-    .download-link {
-      display: inline-block;
-      margin-top: 10px;
-      color: #48f191;
-      text-decoration: underline;
+    .toggle-row label {
+      flex: 1;
     }
   </style>
 </head>
+
 <body>
-  <h1>Admin Panel</h1>
+  <h2>Admin Panel</h2>
 
-  <section class="visibility-container">
-    <h2>Module Visibility</h2>
-    <div id="visibilitySettings"></div>
-    <button class="btn" onclick="saveVisibility()">Save Visibility</button>
-  </section>
+  <div class="section">
+    <h3>Module Visibility</h3>
+    <div id="toggles"></div>
+    <div class="btn-group">
+      <button id="saveVisibilityBtn">Save Visibility Changes</button>
+      <button id="loadDefaultBtn">Load Default Visibility</button>
+    </div>
+    <div id="visibility-status" class="status-message"></div>
+  </div>
 
-  <section>
-    <h2>Industry Benchmarks</h2>
-    <div id="benchmarkTable"></div>
-    <button class="btn" onclick="saveBenchmarks()">Save Benchmarks</button>
-    <a class="download-link" href="https://candoo-clarity.onrender.com/admin/download-benchmarks" target="_blank">Download Benchmarks JSON</a>
-  </section>
+  <div class="section">
+    <h3>Industry Benchmarks (Editable)</h3>
+    <div class="table-wrapper">
+      <table id="benchmarks"></table>
+    </div>
+    <div class="btn-group">
+      <button id="saveBenchmarksBtn">Save Benchmark Changes</button>
+      <a href="https://candoo-clarity.onrender.com/admin/download-csv" download>
+        <button>Download Latest CSV</button>
+      </a>
+    </div>
+    <div id="benchmark-status" class="status-message"></div>
+  </div>
 
   <script>
-    const API_BASE = "https://candoo-clarity.onrender.com";
+    (function () {
+      console.log("✅ Admin script loaded");
+      let currentBenchmarks = [];
 
-    async function fetchVisibilitySettings() {
-      const res = await fetch(`${API_BASE}/admin/get-visibility`);
-      const data = await res.json();
-      return data.data;
-    }
-
-    async function fetchBenchmarks() {
-      const res = await fetch(`${API_BASE}/admin/get-benchmarks`);
-      const data = await res.json();
-      return data.data;
-    }
-
-    async function renderVisibilitySettings() {
-      const container = document.getElementById("visibilitySettings");
-      const settings = await fetchVisibilitySettings();
-
-      settings.forEach(setting => {
-        const label = document.createElement("label");
-        label.innerHTML = `
-          <input type="checkbox" data-key="${setting.calculator}" ${setting.visible ? "checked" : ""}>
-          ${setting.calculator}
-        `;
-        container.appendChild(label);
-      });
-    }
-
-    async function renderBenchmarks() {
-      const container = document.getElementById("benchmarkTable");
-      const benchmarks = await fetchBenchmarks();
-
-      const table = document.createElement("table");
-      const thead = document.createElement("thead");
-      const tbody = document.createElement("tbody");
-
-      const headers = Object.keys(benchmarks[0]);
-
-      const headerRow = document.createElement("tr");
-      headers.forEach(header => {
-        const th = document.createElement("th");
-        th.textContent = header;
-        headerRow.appendChild(th);
-      });
-      thead.appendChild(headerRow);
-
-      benchmarks.forEach((row, rowIndex) => {
-        const tr = document.createElement("tr");
-        headers.forEach(key => {
-          const td = document.createElement("td");
-          const input = document.createElement("input");
-          input.value = row[key];
-          input.addEventListener("input", () => {
-            td.classList.add("edited-cell");
-            row[key] = input.value;
+      function fetchData() {
+        fetch("https://candoo-clarity.onrender.com/admin/get-visibility")
+          .then(r => r.json())
+          .then(({ visibility, benchmarks }) => {
+            renderToggles(visibility);
+            renderBenchmarks(benchmarks);
           });
-          td.appendChild(input);
-          tr.appendChild(td);
+      }
+
+      function renderToggles(data) {
+        const container = document.getElementById("toggles");
+        container.innerHTML = "";
+        Object.keys(data).forEach((key) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "toggle-row";
+          wrapper.innerHTML = `<label for="${key}">${key}</label><input type="checkbox" id="${key}" ${data[key] ? "checked" : ""}>`;
+          container.appendChild(wrapper);
         });
-        tbody.appendChild(tr);
-      });
+      }
 
-      table.appendChild(thead);
-      table.appendChild(tbody);
-      container.appendChild(table);
-    }
+      function renderBenchmarks(data) {
+        currentBenchmarks = data;
+        const table = document.getElementById("benchmarks");
+        table.innerHTML = "";
+        const keys = Object.keys(data[0]);
+        const headerRow = document.createElement("tr");
+        keys.forEach(k => {
+          const th = document.createElement("th");
+          th.textContent = k;
+          headerRow.appendChild(th);
+        });
+        table.appendChild(headerRow);
 
-    async function saveVisibility() {
-      const checkboxes = document.querySelectorAll("#visibilitySettings input[type='checkbox']");
-      const payload = Array.from(checkboxes).map(cb => ({
-        calculator: cb.dataset.key,
-        visible: cb.checked
-      }));
+        data.forEach((row, rowIndex) => {
+          const tr = document.createElement("tr");
+          keys.forEach(k => {
+            const td = document.createElement("td");
+            const input = document.createElement("input");
+            input.value = row[k];
+            input.oninput = e => currentBenchmarks[rowIndex][k] = e.target.value;
+            td.appendChild(input);
+            tr.appendChild(td);
+          });
+          table.appendChild(tr);
+        });
+      }
 
-      const res = await fetch(`${API_BASE}/admin/set-visibility`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      document.getElementById("saveVisibilityBtn").onclick = function () {
+        const toggles = [...document.querySelectorAll("#toggles input")].reduce((acc, el) => {
+          acc[el.id] = el.checked;
+          return acc;
+        }, {});
 
-      const result = await res.json();
-      alert(result.message || "Saved");
-    }
+        fetch("https://candoo-clarity.onrender.com/admin/save-visibility", {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(toggles)
+        }).then(() => {
+          document.getElementById("visibility-status").innerText = "✔️ Visibility settings saved!";
+        });
+      };
 
-    async function saveBenchmarks() {
-      const res = await fetch(`${API_BASE}/admin/set-benchmarks`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(await fetchBenchmarks())
-      });
+      document.getElementById("loadDefaultBtn").onclick = function () {
+        fetch("https://candoo-clarity.onrender.com/admin/get-default-visibility")
+          .then(r => r.json())
+          .then(data => renderToggles(data));
+      };
 
-      const result = await res.json();
-      alert(result.message || "Benchmarks saved");
-    }
+      document.getElementById("saveBenchmarksBtn").onclick = function () {
+        fetch("https://candoo-clarity.onrender.com/admin/save-benchmarks", {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentBenchmarks)
+        }).then(() => {
+          document.getElementById("benchmark-status").innerText = "✔️ Benchmarks saved!";
+        });
+      };
 
-    renderVisibilitySettings();
-    renderBenchmarks();
+      fetchData();
+    })();
   </script>
 </body>
+
 </html>
