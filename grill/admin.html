@@ -136,7 +136,7 @@
 
             async function fetchVisibility() {
                 try {
-                    const response = await fetch('https://testing-gh0h.onrender.com/admin/get-visibility');
+                    const response = await fetch('https://candoo-clarity.onrender.com/admin/get-visibility');
                     const result = await response.json();
                     const togglesDiv = document.getElementById('toggles');
                     togglesDiv.innerHTML = '';
@@ -182,7 +182,7 @@
                 statusDiv.textContent = '';
 
                 try {
-                    const response = await fetch('https://testing-gh0h.onrender.com/admin/set-visibility', {
+                    const response = await fetch('https://candoo-clarity.onrender.com/admin/set-visibility', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ updated_visibility: data })
@@ -220,7 +220,7 @@
                 statusDiv.textContent = '';
 
                 try {
-                    const response = await fetch('https://testing-gh0h.onrender.com/admin/set-visibility', {
+                    const response = await fetch('https://candoo-clarity.onrender.com/admin/set-visibility', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ updated_visibility: defaultModules })
@@ -245,7 +245,7 @@
 
             async function fetchBenchmarks() {
                 try {
-                    const response = await fetch('https://testing-gh0h.onrender.com/admin/get-benchmarks');
+                    const response = await fetch('https://candoo-clarity.onrender.com/admin/get-benchmarks');
                     const result = await response.json();
 
                     currentBenchmarks = result.data || [];
@@ -304,7 +304,7 @@
                 statusDiv.textContent = '';
 
                 try {
-                    const response = await fetch('https://testing-gh0h.onrender.com/admin/update-benchmarks', {
+                    const response = await fetch('https://candoo-clarity.onrender.com/admin/update-benchmarks', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(currentBenchmarks)
