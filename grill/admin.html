@@ -107,7 +107,7 @@
 
   <div class="section">
   <h3>Industry Benchmarks (Editable)</h3>
-  <div id="benchmarks" class="table-wrapper"></div>
+  <div id="benchmarks"></div>
   <div class="btn-group">
     <button id="saveBenchmarksBtn">Save Benchmark Changes</button>
     <a href="https://candoo-clarity.onrender.com/admin/download-csv" download>
@@ -291,10 +291,8 @@
                       table.appendChild(tr);
                     });
                 
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'table-wrapper';
-                    wrapper.appendChild(table);
-                    benchmarksDiv.appendChild(wrapper);
+                    table.className = 'table-wrapper';
+                    benchmarksDiv.appendChild(table);
                 
                   } catch (error) {
                     console.error('❌ Error fetching benchmarks:', error);
