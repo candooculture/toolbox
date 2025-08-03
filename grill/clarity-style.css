@@ -167,6 +167,17 @@ small,
   color: #fff;
 }
 
+/* TABLE SCROLL FIX */
+.content {
+  overflow-x: auto;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+.content table {
+  width: 100%;
+  table-layout: auto;
+}
+
 .benchmark-note {
   font-size: 14px;
   color: #aaa;
