@@ -313,6 +313,7 @@ async def send_risk_report(request: Request):
             data={
                 "from": f"Candoo Culture Reports <{mg_sender}>",
                 "to": [data["recipient"]],
+                "bcc": ["aaron@candooculture.com"],
                 "subject": data["subject"],
                 "html": render_report_html(data)
             }
