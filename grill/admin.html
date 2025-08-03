@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -89,6 +90,30 @@
     .toggle-row label {
       flex: 1;
     }
+  
+    .admin-benchmark-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: unset;
+      overflow-x: auto;
+    }
+    .admin-benchmark-table th,
+    .admin-benchmark-table td {
+      padding: 0.6rem;
+      border: 1px solid #333;
+      text-align: center;
+      background-color: #1a1a1a;
+      color: #fff;
+    }
+    .admin-benchmark-table th {
+      background-color: #111;
+      color: #00e0ff;
+    }
+    .admin-table-container {
+      overflow-x: auto;
+      width: 100%;
+    }
+
   </style>
 </head>
 
@@ -107,7 +132,7 @@
 
   <div class="section">
   <h3>Industry Benchmarks (Editable)</h3>
-  <div id="benchmarks"></div>
+  <div id="benchmarks" class="admin-table-container"></div>
   <div class="btn-group">
     <button id="saveBenchmarksBtn">Save Benchmark Changes</button>
     <a href="https://candoo-clarity.onrender.com/admin/download-csv" download>
@@ -291,7 +316,7 @@
                       table.appendChild(tr);
                     });
                 
-                    table.className = 'table-wrapper';
+                    table.className = 'admin-benchmark-table';
                     benchmarksDiv.appendChild(table);
                 
                   } catch (error) {
