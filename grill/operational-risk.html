@@ -7,7 +7,12 @@
 </head>
 <body>
   <h2>Operational Risk Report</h2>
-  <div id="report-form">
+  
+<div id="report-form">
+  <div class="g-recaptcha"
+       data-sitekey="6Lc6BZkrAAAAAHJV0oPIFdZrvrB4f9KHEuKRvc9w"
+       data-callback="onCaptchaSuccess"></div>
+
     <label for="email">Recipient Email:</label>
     <input type="email" id="email" placeholder="you@example.com" required />
     <div class="g-recaptcha" data-sitekey="6Lc6BZkrAAAAAHJV0oPIFdZrvrB4f9KHEuKRvc9w"></div>
@@ -16,6 +21,12 @@
   <p id="feedback"></p>
 
   <script>
+let captchaToken = null;
+
+function onCaptchaSuccess(token) {
+  captchaToken = token;
+}
+
     const emailInput = document.getElementById("email");
     const feedback = document.getElementById("feedback");
     const btn = document.getElementById("generate-btn");
@@ -50,7 +61,14 @@
       const workforce = read("workforce-productivity-inputs");
       const deep = read("productivity-deep-dive-inputs");
 
-      const payload = {
+      
+if (!captchaToken) {
+  feedback.textContent = "Please complete the CAPTCHA.";
+  feedback.style.color = "orange";
+  return;
+}
+
+const payload = {
         captcha_token: captchaResponse,
         recipient: email,
         subject: "Candoo: Your Operational Risk Report",
