@@ -292,6 +292,18 @@ async def send_risk_report(request: Request):
     try:
         data = await request.json()
 
+        # === Verify CAPTCHA ===
+        captcha_token = data.get("captcha_token")
+        secret = os.getenv("RECAPTCHA_SECRET_KEY")
+        captcha_resp = requests.post(
+            "https://www.google.com/recaptcha/api/siteverify",
+            data={"secret": secret, "response": captcha_token}
+        )
+        captcha_result = captcha_resp.json()
+        if not captcha_result.get("success"):
+            raise HTTPException(status_code=400, detail="CAPTCHA verification failed.")
+
+
         # reCAPTCHA Validation
         recaptcha_token = data.get("captcha_token")
         if not recaptcha_token:
