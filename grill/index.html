@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <title>Candoo Clarity Toolbox</title>
@@ -10,10 +9,10 @@
 
 <body>
   <div class="logo">
-  <a href="https://candooculture.com/">
-    <img src="candoologo.png" alt="Candoo Logo">
-  </a>
-</div>
+    <a href="https://candooculture.com/">
+      <img src="candoologo.png" alt="Candoo Logo">
+    </a>
+  </div>
 
   <h1>Candoo Clarity Toolbox</h1>
 
@@ -135,6 +134,13 @@
           }
           newScript.setAttribute('data-injected', 'true');
           document.body.appendChild(newScript);
+
+          // ✅ Special handling: render reCAPTCHA manually if needed
+          if (oldScript.textContent.includes("window.renderCaptcha")) {
+            setTimeout(() => {
+              if (typeof renderCaptcha === "function") renderCaptcha();
+            }, 500);
+          }
         });
 
       } catch (err) {
@@ -163,5 +169,4 @@
     });
   </script>
 </body>
-
 </html>
