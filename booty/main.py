@@ -292,30 +292,24 @@ async def send_risk_report(request: Request):
     try:
         data = await request.json()
 
-        # === Verify CAPTCHA ===
+               # === CAPTCHA VALIDATION ===
         captcha_token = data.get("captcha_token")
         secret = os.getenv("RECAPTCHA_SECRET_KEY")
-        captcha_resp = requests.post(
+
+        print("✅ CAPTCHA token received:", captcha_token)
+        print("🔐 CAPTCHA secret loaded:", "Yes" if secret else "❌ MISSING")
+
+        if not captcha_token:
+            raise HTTPException(status_code=400, detail="Missing CAPTCHA token")
+        if not secret:
+            raise HTTPException(status_code=500, detail="Missing CAPTCHA secret key")
+
+        verify_response = requests.post(
             "https://www.google.com/recaptcha/api/siteverify",
             data={"secret": secret, "response": captcha_token}
         )
-        captcha_result = captcha_resp.json()
-        if not captcha_result.get("success"):
-            raise HTTPException(status_code=400, detail="CAPTCHA verification failed.")
-
-
-        # reCAPTCHA Validation
-        recaptcha_token = data.get("captcha_token")
-        if not recaptcha_token:
-            raise HTTPException(status_code=400, detail="Missing CAPTCHA token")
-
-        secret_key = os.getenv("RECAPTCHA_SECRET_KEY")
-        captcha_response = requests.post(
-            "https://www.google.com/recaptcha/api/siteverify",
-            data={"secret": secret_key, "response": recaptcha_token}
-        )
-        captcha_result = captcha_response.json()
-        if not captcha_result.get("success"):
+        verify_result = verify_response.json()
+        if not verify_result.get("success"):
             raise HTTPException(status_code=400, detail="CAPTCHA validation failed")
 
         # ORS Calculation
