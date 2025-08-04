@@ -1,22 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Operational Risk Report</title>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-</head>
-<body>
-  <h2>Operational Risk Report</h2>
-
-    <label for="email">Recipient Email:</label>
-    <input type="email" id="email" placeholder="you@example.com" required />
-    <div class="g-recaptcha" data-sitekey="6Lc6BZkrAAAAAHJV0oPIFdZrvrB4f9KHEuKRvc9w"></div>
-    <button id="generate-btn">Generate Report</button>
-  </div>
-  <p id="feedback"></p>
-
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Operational Risk Report
+  </title>
+  <script async="" defer="" src="https://www.google.com/recaptcha/api.js">
+  </script>
+ </head>
+ <body>
   <script>
-let captchaToken = null;
+   let captchaToken = "";
+
+function onCaptchaSuccess(token) {
+  captchaToken = token;
+}
+  </script>
+  <h2>
+   Operational Risk Report
+  </h2>
+  <label for="email">
+   Recipient Email:
+  </label>
+  <input id="email" placeholder="you@example.com" required="" type="email"/>
+  <div class="g-recaptcha" data-callback="onCaptchaSuccess" data-sitekey="6Lc6BZkrAAAAAHJV0oPIFdZrvrB4f9KHEuKRvc9w">
+  </div>
+  <button id="generate-btn">
+   Generate Report
+  </button>
+  <p id="feedback">
+  </p>
+  <script>
+   let captchaToken = null;
 
 function onCaptchaSuccess(token) {
   captchaToken = token;
@@ -37,13 +52,17 @@ function onCaptchaSuccess(token) {
     btn.addEventListener("click", async (e) => {
       e.preventDefault();
       const email = emailInput.value.trim();
-      if (!email) {
+      if (!email || !captchaToken) {
+      feedback.textContent = 'Please enter a valid email and complete the CAPTCHA.';
+      feedback.style.color = 'orange';
+      return;
+    }
         feedback.textContent = "Please enter a valid email address.";
         feedback.style.color = "orange";
         return;
       }
 
-      const captchaResponse = document.querySelector("#g-recaptcha-response").value;
+      
       if (!captchaResponse) {
         feedback.textContent = "Please complete the CAPTCHA.";
         feedback.style.color = "orange";
@@ -107,5 +126,5 @@ const payload = {
       }
     });
   </script>
-</body>
+ </body>
 </html>
