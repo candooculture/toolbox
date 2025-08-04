@@ -292,14 +292,28 @@ async def send_risk_report(request: Request):
     try:
         data = await request.json()
 
-        # === Run ORS Calculation and inject results ===
+        # reCAPTCHA Validation
+        recaptcha_token = data.get("captcha_token")
+        if not recaptcha_token:
+            raise HTTPException(status_code=400, detail="Missing CAPTCHA token")
+
+        secret_key = os.getenv("RECAPTCHA_SECRET_KEY")
+        captcha_response = requests.post(
+            "https://www.google.com/recaptcha/api/siteverify",
+            data={"secret": secret_key, "response": recaptcha_token}
+        )
+        captcha_result = captcha_response.json()
+        if not captcha_result.get("success"):
+            raise HTTPException(status_code=400, detail="CAPTCHA validation failed")
+
+        # ORS Calculation
         try:
             ors_result = run_operational_risk(RiskInput(**data))
             data.update(ors_result)
         except Exception as calc_error:
             print("ORS calculation failed:", calc_error)
 
-        # === Mailgun ===
+        # Mailgun Send
         mg_api_key = os.getenv("MAILGUN_API_KEY")
         mg_domain = os.getenv("MAILGUN_DOMAIN")
         mg_sender = os.getenv("MAILGUN_SENDER")
