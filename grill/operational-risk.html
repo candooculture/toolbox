@@ -1,85 +1,97 @@
-<h2>Operational Risk Report</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Operational Risk Report</title>
+  <script src="https://www.google.com/recaptcha/api.js?render=your_site_key"></script>
+</head>
+<body>
+  <h2>Operational Risk Report</h2>
+  <div id="report-form">
+    <label for="email">Recipient Email:</label>
+    <input type="email" id="email" placeholder="you@example.com" required />
+    <button id="generate-btn">Generate Report</button>
+  </div>
+  <p id="feedback"></p>
 
-<div id="report-form">
-  <label for="email">Recipient Email:</label>
-  <input type="email" id="email" placeholder="you@example.com" required />
-  <button id="generate-btn">Generate Report</button>
-</div>
+  <script>
+    const emailInput = document.getElementById("email");
+    const feedback = document.getElementById("feedback");
+    const btn = document.getElementById("generate-btn");
 
-<p id="feedback"></p>
-
-<script>
-  const emailInput = document.getElementById("email");
-  const feedback = document.getElementById("feedback");
-  const btn = document.getElementById("generate-btn");
-
-  const read = (key) => {
-    try {
-      return JSON.parse(localStorage.getItem(key)) || {};
-    } catch {
-      return {};
-    }
-  };
-
-  btn.addEventListener("click", async (e) => {
-    e.preventDefault();
-
-    const email = emailInput.value.trim();
-    if (!email) {
-      feedback.textContent = "Please enter a valid email address.";
-      feedback.style.color = "orange";
-      return;
-    }
-
-    const payroll = read("payroll-waste-inputs");
-    const churn = read("customer-churn-inputs");
-    const leadership = read("leadership-drag-inputs");
-    const workforce = read("workforce-productivity-inputs");
-    const deep = read("productivity-deep-dive-inputs");
-
-    const payload = {
-      recipient: email,
-      subject: "Candoo: Your Operational Risk Report",
-      industry: payroll.industry || workforce.industry || "",
-      improvement_rate: payroll.improvement_rate,
-      payroll_cost: workforce.payroll_cost,
-      total_employees: payroll.total_employees,
-      avg_salary: payroll.avg_salary,
-      churn_rate: churn.churn_rate,
-      desired_improvement: churn.desired_improvement,
-      cac: churn.cac,
-      avg_revenue: churn.avg_revenue,
-      num_customers: churn.num_customers,
-      leadership_drag: leadership.leadership_drag,
-      total_revenue: workforce.total_revenue,
-      productive_hours: workforce.productive_hours,
-      target_hours_per_employee: workforce.target_hours_per_employee,
-      overtime_hours: workforce.overtime_hours,
-      absenteeism_days: deep.absenteeism_days,
-      avg_hours: deep.avg_hours
+    const read = (key) => {
+      try {
+        return JSON.parse(localStorage.getItem(key)) || {};
+      } catch {
+        return {};
+      }
     };
 
-    try {
-      const response = await fetch("https://candoo-clarity.onrender.com/send-risk-report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-      console.log("📬 Server response:", result);
-
-      if (response.ok) {
-        feedback.textContent = "✅ Report sent successfully!";
-        feedback.style.color = "green";
-        emailInput.value = "";
-      } else {
-        throw new Error(result.detail || "Failed to send report.");
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      if (!email) {
+        feedback.textContent = "Please enter a valid email address.";
+        feedback.style.color = "orange";
+        return;
       }
-    } catch (err) {
-      console.error("❌ Fetch failed:", err);
-      feedback.textContent = `❌ ${err.message}`;
-      feedback.style.color = "red";
-    }
-  });
-</script>
+
+      grecaptcha.ready(() => {
+        grecaptcha.execute("your_site_key", { action: "submit" }).then(async (token) => {
+          const payroll = read("payroll-waste-inputs");
+          const churn = read("customer-churn-inputs");
+          const leadership = read("leadership-drag-inputs");
+          const workforce = read("workforce-productivity-inputs");
+          const deep = read("productivity-deep-dive-inputs");
+
+          const payload = {
+            captcha_token: token,
+            recipient: email,
+            subject: "Candoo: Your Operational Risk Report",
+            industry: payroll.industry || workforce.industry || "",
+            improvement_rate: payroll.improvement_rate,
+            payroll_cost: workforce.payroll_cost,
+            total_employees: payroll.total_employees,
+            avg_salary: payroll.avg_salary,
+            churn_rate: churn.churn_rate,
+            desired_improvement: churn.desired_improvement,
+            cac: churn.cac,
+            avg_revenue: churn.avg_revenue,
+            num_customers: churn.num_customers,
+            leadership_drag: leadership.leadership_drag,
+            total_revenue: workforce.total_revenue,
+            productive_hours: workforce.productive_hours,
+            target_hours_per_employee: workforce.target_hours_per_employee,
+            overtime_hours: workforce.overtime_hours,
+            absenteeism_days: deep.absenteeism_days,
+            avg_hours: deep.avg_hours
+          };
+
+          try {
+            const response = await fetch("https://candoo-clarity.onrender.com/send-risk-report", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            console.log("📬 Server response:", result);
+
+            if (response.ok) {
+              feedback.textContent = "✅ Report sent successfully!";
+              feedback.style.color = "green";
+              emailInput.value = "";
+            } else {
+              throw new Error(result.detail || "Failed to send report.");
+            }
+          } catch (err) {
+            console.error("❌ Fetch failed:", err);
+            feedback.textContent = `❌ ${err.message}`;
+            feedback.style.color = "red";
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
