@@ -64,10 +64,11 @@
         return;
       }
 
-      const captchaResponse = document.querySelector("#g-recaptcha-response")?.value;
+      const captchaResponse = grecaptcha.getResponse();
       if (!captchaResponse) {
         feedback.textContent = "Please complete the CAPTCHA.";
         feedback.style.color = "orange";
+        grecaptcha.reset();
         return;
       }
 
@@ -112,6 +113,7 @@
           feedback.textContent = "✅ Report sent successfully!";
           feedback.style.color = "green";
           emailInput.value = "";
+          grecaptcha.reset(); // Optional: reset captcha after success
         } else {
           throw new Error(result.detail || "Failed to send report.");
         }
