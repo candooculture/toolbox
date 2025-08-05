@@ -193,6 +193,9 @@
       modal.style.display = "none";
       switchTab(nextTabKey, document.querySelector(`.tab:nth-child(${Object.keys(calculators).indexOf(nextTabKey)+1})`));
     };
+    document.getElementById("closeEmailGate").onclick = () => {
+    document.getElementById("emailGateModal").style.display = "none";
+    };
   };
 
   // 🧠 Override switchTab to inject email gate logic
@@ -207,14 +210,72 @@
   };
 </script>
 
-  <!-- 🔒 Email Gate Modal -->
-<div id="emailGateModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:#fff; padding:20px; border-radius:10px; max-width:360px; width:100%; text-align:center;">
-    <h3>Unlock Full Toolbox</h3>
-    <p>Enter your email to access the full suite of diagnostics.</p>
-    <input type="email" id="unlock-email" placeholder="you@example.com" style="width:100%; padding:8px; margin:12px 0;" />
-    <button id="unlockBtn" style="padding:8px 16px;">Unlock Now</button>
-    <p id="unlock-feedback" style="color:red; font-size:13px; display:none;"></p>
+ <!-- 🔒 Styled Email Gate Modal with Close Button -->
+<div id="emailGateModal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+">
+  <div style="
+    background: white;
+    padding: 30px 24px;
+    border-radius: 16px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+    position: relative;
+  ">
+    <!-- ❌ Close Button -->
+    <button id="closeEmailGate" style="
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: #999;
+      cursor: pointer;
+    " aria-label="Close">&times;</button>
+
+    <h3 style="font-size: 22px; margin-bottom: 12px; color: #111;">Unlock the Full Toolbox</h3>
+    <p style="font-size: 14px; color: #444;">Enter your email to access all modules instantly.</p>
+    <input
+      type="email"
+      id="unlock-email"
+      placeholder="you@example.com"
+      style="
+        width: 100%;
+        padding: 10px 14px;
+        margin: 16px 0 12px 0;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        background: #f9f9f9;
+        color: #333;
+      "
+    />
+    <button
+      id="unlockBtn"
+      style="
+        padding: 10px 18px;
+        background: #00d6ff;
+        border: none;
+        border-radius: 12px;
+        color: #000;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background 0.2s ease-in-out;
+      "
+    >Unlock Now</button>
+    <p id="unlock-feedback" style="color: red; font-size: 13px; margin-top: 10px; display: none;"></p>
   </div>
 </div>
 
