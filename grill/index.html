@@ -194,17 +194,28 @@
     feedback.style.display = "none";
 
     unlockBtn.onclick = () => {
-      const email = document.getElementById("unlock-email").value.trim();
-      if (!email || !email.includes("@")) {
-        feedback.textContent = "Please enter a valid email.";
-        feedback.style.display = "block";
-        return;
-      }
+  const email = document.getElementById("unlock-email").value.trim();
+  if (!email || !email.includes("@")) {
+    feedback.textContent = "Please enter a valid email.";
+    feedback.style.display = "block";
+    return;
+  }
 
-      localStorage.setItem("candoo-user-email", email);
-      modal.style.display = "none";
-      switchTab(nextTabKey, document.querySelector(`.tab:nth-child(${Object.keys(calculators).indexOf(nextTabKey)+1})`));
-    };
+  localStorage.setItem("candoo-user-email", email);
+
+  // 🔄 Send to Google Sheets via webhook
+  fetch("YOUR_WEBHOOK_URL_HERE", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: email,
+      source: "module-unlock"
+    })
+  });
+
+    modal.style.display = "none";
+    switchTab(nextTabKey, document.querySelector(`.tab:nth-child(${Object.keys(calculators).indexOf(nextTabKey)+1})`));
+  };
     document.getElementById("closeEmailGate").onclick = () => {
     document.getElementById("emailGateModal").style.display = "none";
     };
