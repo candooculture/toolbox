@@ -207,23 +207,7 @@
     }
     originalSwitchTab(key, tabEl);
   };
-
-  document.getElementById('resetAllBtn').addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear all module results? This cannot be undone.')) {
-      const keysToClear = [
-        'payroll-waste-inputs',
-        'customer-churn-inputs',
-        'leadership-drag-inputs',
-        'workforce-productivity-inputs',
-        'productivity-deep-dive-inputs',
-        'industry',
-        'candoo-user-email'
-      ];
-      keysToClear.forEach(key => localStorage.removeItem(key));
-      location.reload();
-    }
-  });
-
+    
   window.onload = loadVisibility;
 </script>
 
