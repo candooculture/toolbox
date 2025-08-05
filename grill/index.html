@@ -237,12 +237,16 @@
       position: absolute;
       top: 12px;
       right: 14px;
-      background: none;
+      background: transparent;
       border: none;
-      font-size: 18px;
-      color: #999;
+      font-size: 20px;
+      color: #666;
       cursor: pointer;
-    " aria-label="Close">&times;</button>
+      outline: none;
+      box-shadow: none;
+      "onfocus="this.style.outline='none'; this.style.boxShadow='none';" aria-label="Close">
+      &times;
+    </button>
 
     <h3 style="font-size: 22px; margin-bottom: 12px; color: #111;">Unlock the Full Toolbox</h3>
     <p style="font-size: 14px; color: #444;">Enter your email to access all modules instantly.</p>
