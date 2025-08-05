@@ -243,9 +243,14 @@
     ];
     keysToClear.forEach(key => localStorage.removeItem(key));
 
-    setTimeout(() => {
-      location.reload();
-    }, 200);
+    // Soft refresh: clear tabs and reload tab logic
+    const tabsDiv = document.getElementById('tabs');
+    const container = document.getElementById('contentContainer');
+
+    if (tabsDiv) tabsDiv.innerHTML = '';
+    if (container) container.innerHTML = '<p>Reset complete. Please select a module to begin again.</p>';
+
+    loadVisibility(); // re-trigger tab rendering without reload
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -255,7 +260,7 @@
     }
   });
 </script>
-
+  
  <!-- 🔒 Styled Email Gate Modal with Close Button -->
 <div id="emailGateModal" style="
   display: none;
