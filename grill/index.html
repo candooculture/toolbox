@@ -204,7 +204,7 @@
   localStorage.setItem("candoo-user-email", email);
 
   // 🔄 Send to Google Sheets via webhook
-  fetch("YOUR_WEBHOOK_URL_HERE", {
+  fetch("https://script.google.com/macros/s/AKfycbzGv8HMysguhqnftFV6lRUxuNHoRR3-dqWvb1YVPSnwr6SteV5W2M6NLiyejxsjf7Ru/exec", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
