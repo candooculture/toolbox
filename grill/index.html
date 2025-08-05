@@ -168,5 +168,54 @@
       }
     });
   </script>
+  
+  <script>
+  const gatedModules = ["customer_churn", "workforce_productivity", "productivity_dive"];
+
+  const showEmailGate = (nextTabKey) => {
+    const modal = document.getElementById("emailGateModal");
+    const unlockBtn = document.getElementById("unlockBtn");
+    const feedback = document.getElementById("unlock-feedback");
+
+    modal.style.display = "flex";
+    feedback.style.display = "none";
+
+    unlockBtn.onclick = () => {
+      const email = document.getElementById("unlock-email").value.trim();
+      if (!email || !email.includes("@")) {
+        feedback.textContent = "Please enter a valid email.";
+        feedback.style.display = "block";
+        return;
+      }
+
+      localStorage.setItem("candoo-user-email", email);
+      modal.style.display = "none";
+      switchTab(nextTabKey, document.querySelector(`.tab:nth-child(${Object.keys(calculators).indexOf(nextTabKey)+1})`));
+    };
+  };
+
+  // 🧠 Override switchTab to inject email gate logic
+  const originalSwitchTab = switchTab;
+  switchTab = function (key, tabEl) {
+    const emailStored = localStorage.getItem("candoo-user-email");
+    if (gatedModules.includes(key) && !emailStored) {
+      showEmailGate(key);
+      return;
+    }
+    originalSwitchTab(key, tabEl);
+  };
+</script>
+
+  <!-- 🔒 Email Gate Modal -->
+<div id="emailGateModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:20px; border-radius:10px; max-width:360px; width:100%; text-align:center;">
+    <h3>Unlock Full Toolbox</h3>
+    <p>Enter your email to access the full suite of diagnostics.</p>
+    <input type="email" id="unlock-email" placeholder="you@example.com" style="width:100%; padding:8px; margin:12px 0;" />
+    <button id="unlockBtn" style="padding:8px 16px;">Unlock Now</button>
+    <p id="unlock-feedback" style="color:red; font-size:13px; display:none;"></p>
+  </div>
+</div>
+
 </body>
 </html>
