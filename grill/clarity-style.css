@@ -156,6 +156,12 @@ small,
   box-shadow: inset 0 1px 3px rgba(19, 220, 255, 0.15);
   color: #13dcff;
 }
+.tab.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: auto;
+  transition: opacity 0.2s ease-in-out;
+}
 
 /* CONTENT */
 .content {
