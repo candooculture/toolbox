@@ -123,5 +123,16 @@
       }
     });
   </script>
+  
+  <script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const savedEmail = localStorage.getItem("candoo-user-email");
+    const emailInput = document.getElementById("email");
+    if (savedEmail && emailInput) {
+      emailInput.value = savedEmail;
+    }
+  });
+</script>
+
 </body>
 </html>
