@@ -94,9 +94,6 @@
         tab.classList.add("locked");
         tab.innerHTML = `🔒 ${name}`;
       } else {
-        tab.classList.remove("locked");
-        tab.innerHTML = name;
-      } else {
         tab.innerHTML = name;
       }
     
@@ -164,7 +161,8 @@
       }
     }
 
-    // 🧠 Override switchTab to inject email gate logic
+    
+  // 🧠 Override switchTab to inject email gate logic
   const originalSwitchTab = switchTab;
   switchTab = function (key, tabEl) {
     const emailStored = localStorage.getItem("candoo-user-email");
@@ -174,7 +172,6 @@
     }
     originalSwitchTab(key, tabEl);
   };
-};
 
   window.onload = loadVisibility;
   </script>
@@ -209,35 +206,42 @@
     feedback.style.display = "none";
 
     unlockBtn.onclick = () => {
-    const email = document.getElementById("unlock-email").value.trim();
-    if (!email || !email.includes("@")) {
-      feedback.textContent = "Please enter a valid email.";
-      feedback.style.display = "block";
-      return;
-    }
-  
-    localStorage.setItem("candoo-user-email", email);
-  
-    // 🔁 Send email to backend instead of direct to Google Sheets
-    fetch("https://candoo-clarity.onrender.com/unlock-user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    }).catch(err => {
-      console.error("Email logging failed:", err);
-    });
-  
+  const email = document.getElementById("unlock-email").value.trim();
+  if (!email || !email.includes("@")) {
+    feedback.textContent = "Please enter a valid email.";
+    feedback.style.display = "block";
+    return;
+  }
+
+  localStorage.setItem("candoo-user-email", email);
+
+  // 🔄 Send to Google Sheets via webhook
+  fetch("https://script.google.com/macros/s/AKfycbwbtb1kDD5fOJrtCVtfcVq2H5vdgrpYhw89zpnJryUEiuset9AUBWSkNRPTU_5So-t-/exec", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: email,
+      source: "module-unlock"
+    })
+  });
+
     modal.style.display = "none";
-  
-    // 🔄 Reload tabs so locked styles get removed
-    loadVisibility();
+    switchTab(nextTabKey, document.querySelector(`.tab:nth-child(${Object.keys(calculators).indexOf(nextTabKey)+1})`));
   };
-  
-  document.getElementById("closeEmailGate").onclick = () => {
+    document.getElementById("closeEmailGate").onclick = () => {
     document.getElementById("emailGateModal").style.display = "none";
+    };
   };
 
-  
+  // 🧠 Override switchTab to inject email gate logic
+  switchTab = function (key, tabEl) {
+    const emailStored = localStorage.getItem("candoo-user-email");
+    if (gatedModules.includes(key) && !emailStored) {
+      showEmailGate(key);
+      return;
+    }
+    originalSwitchTab(key, tabEl);
+  };
 </script>
 
  <!-- 🔒 Styled Email Gate Modal with Close Button -->
