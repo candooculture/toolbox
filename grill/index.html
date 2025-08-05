@@ -49,122 +49,156 @@
   </div>
 
   <script>
-    const calculators = {
-      team_efficiency: { name: "💸 Payroll Waste", file: "payroll-waste.html" },
-      customer_churn: { name: "📉 Customer Churn", file: "customer-churn.html" },
-      leadership_drag: { name: "🧠 Leadership Drag", file: "leadership-drag.html" },
-      workforce_productivity: { name: "📈 Workforce Productivity", file: "workforce-productivity.html" },
-      productivity_dive: { name: "🔍 Productivity Deep Dive", file: "productivity-dive.html" },
-      operational_risk: { name: "🔥 Operational Risk", file: "operational-risk.html" },
-      __admin__: { name: "⚙️ Admin", file: "admin.html", protected: true }
-    };
+  const calculators = {
+    team_efficiency: { name: "💸 Payroll Waste", file: "payroll-waste.html" },
+    customer_churn: { name: "📉 Customer Churn", file: "customer-churn.html" },
+    leadership_drag: { name: "🧠 Leadership Drag", file: "leadership-drag.html" },
+    workforce_productivity: { name: "📈 Workforce Productivity", file: "workforce-productivity.html" },
+    productivity_dive: { name: "🔍 Productivity Deep Dive", file: "productivity-dive.html" },
+    operational_risk: { name: "🔥 Operational Risk", file: "operational-risk.html" },
+    __admin__: { name: "⚙️ Admin", file: "admin.html", protected: true }
+  };
 
-    async function loadVisibility() {
-      const tabsDiv = document.getElementById('tabs');
-      const container = document.getElementById('contentContainer');
-      tabsDiv.innerHTML = '';
+  const gatedModules = ["customer_churn", "workforce_productivity", "productivity_dive"];
+  let originalSwitchTab;
 
-      let visibleKeys = [];
+  async function loadVisibility() {
+    const tabsDiv = document.getElementById('tabs');
+    const container = document.getElementById('contentContainer');
+    tabsDiv.innerHTML = '';
 
-      try {
-        const res = await fetch('https://candoo-clarity.onrender.com/admin/get-visibility');
-        const data = await res.json();
-        if (data.status === 'success' && Array.isArray(data.data)) {
-          visibleKeys = data.data
-            .filter(item => item.visible)
-            .map(item => item.calculator);
-        }
-      } catch (err) {
-        console.warn("⚠️ Could not load visibility settings from backend. Defaulting to all.");
-        visibleKeys = Object.keys(calculators).filter(k => !calculators[k].protected);
+    let visibleKeys = [];
+
+    try {
+      const res = await fetch('https://candoo-clarity.onrender.com/admin/get-visibility');
+      const data = await res.json();
+      if (data.status === 'success' && Array.isArray(data.data)) {
+        visibleKeys = data.data
+          .filter(item => item.visible)
+          .map(item => item.calculator);
       }
+    } catch (err) {
+      console.warn("⚠️ Could not load visibility settings from backend. Defaulting to all.");
+      visibleKeys = Object.keys(calculators).filter(k => !calculators[k].protected);
+    }
 
-      Object.keys(calculators).forEach((key) => {
+    Object.keys(calculators).forEach((key) => {
       if (!visibleKeys.includes(key) && key !== '__admin__') return;
-    
+
       const { name } = calculators[key];
       const tab = document.createElement('div');
       tab.className = 'tab';
-    
+
       const emailStored = localStorage.getItem("candoo-user-email");
-      const isGated = ["customer_churn", "workforce_productivity", "productivity_dive"].includes(key);
-    
-      // 🔒 Apply locked visual state
+      const isGated = gatedModules.includes(key);
+
       if (isGated && !emailStored) {
         tab.classList.add("locked");
         tab.innerHTML = `🔒 ${name}`;
       } else {
         tab.innerHTML = name;
       }
-    
+
       tab.onclick = () => switchTab(key, tab);
       tabsDiv.appendChild(tab);
     });
 
-      const firstKey = visibleKeys.find(k => k !== '__admin__');
-      const firstTab = tabsDiv.querySelector('.tab');
-      if (firstTab && firstKey) {
-        firstTab.classList.add('active');
-        switchTab(firstKey, firstTab);
+    const firstKey = visibleKeys.find(k => k !== '__admin__');
+    const firstTab = tabsDiv.querySelector('.tab');
+    if (firstTab && firstKey) {
+      firstTab.classList.add('active');
+      switchTab(firstKey, firstTab);
+    }
+  }
+
+  async function switchTab(key, tabEl) {
+    const module = calculators[key];
+    if (!module) return;
+
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+
+    const container = document.getElementById('contentContainer');
+    container.innerHTML = '<p>Loading...</p>';
+
+    if (module.protected) {
+      const password = prompt("Enter admin password:");
+      if (password !== "toolbox12103032") {
+        container.innerHTML = '<p style="color:red;">Access denied.</p>';
+        return;
       }
     }
 
-    async function switchTab(key, tabEl) {
-      const module = calculators[key];
-      if (!module) return;
+    try {
+      const response = await fetch(module.file);
+      const html = await response.text();
 
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tabEl.classList.add('active');
+      document.querySelectorAll('script[data-injected]').forEach(script => script.remove());
+      container.innerHTML = html;
+      document.querySelector('.intro')?.classList.remove('hidden');
 
-      const container = document.getElementById('contentContainer');
-      container.innerHTML = '<p>Loading...</p>';
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
 
-      if (module.protected) {
-        const password = prompt("Enter admin password:");
-        if (password !== "toolbox12103032") {
-          container.innerHTML = '<p style="color:red;">Access denied.</p>';
-          return;
+      tempDiv.querySelectorAll('script').forEach(oldScript => {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
         }
+        newScript.setAttribute('data-injected', 'true');
+        document.body.appendChild(newScript);
+
+        if (oldScript.textContent.includes("window.renderCaptcha")) {
+          const checkReady = setInterval(() => {
+            if (typeof grecaptcha !== "undefined" && typeof renderCaptcha === "function") {
+              renderCaptcha();
+              clearInterval(checkReady);
+            }
+          }, 200);
+        }
+      });
+
+    } catch (err) {
+      console.error("❌ Error loading module:", err);
+      container.innerHTML = '<p style="color:red;">Error loading module.</p>';
+    }
+  }
+
+  function showEmailGate(nextTabKey) {
+    const modal = document.getElementById("emailGateModal");
+    const unlockBtn = document.getElementById("unlockBtn");
+    const feedback = document.getElementById("unlock-feedback");
+
+    modal.style.display = "flex";
+    feedback.style.display = "none";
+
+    unlockBtn.onclick = () => {
+      const email = document.getElementById("unlock-email").value.trim();
+      if (!email || !email.includes("@")) {
+        feedback.textContent = "Please enter a valid email.";
+        feedback.style.display = "block";
+        return;
       }
-     try {
-  const response = await fetch(module.file);
-  const html = await response.text();
 
-  document.querySelectorAll('script[data-injected]').forEach(script => script.remove());
-  container.innerHTML = html;
-  document.querySelector('.intro')?.classList.remove('hidden');
+      localStorage.setItem("candoo-user-email", email);
 
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
+      fetch("https://candoo-clarity.onrender.com/unlock-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
 
-  tempDiv.querySelectorAll('script').forEach(oldScript => {
-    const newScript = document.createElement('script');
-    if (oldScript.src) {
-      newScript.src = oldScript.src;
-    } else {
-      newScript.textContent = oldScript.textContent;
-    }
-    newScript.setAttribute('data-injected', 'true');
-    document.body.appendChild(newScript);
+      location.reload();
+    };
 
-    // ✅ FIXED: reCAPTCHA ready check
-    if (oldScript.textContent.includes("window.renderCaptcha")) {
-      const checkReady = setInterval(() => {
-        if (typeof grecaptcha !== "undefined" && typeof renderCaptcha === "function") {
-          renderCaptcha();
-          clearInterval(checkReady);
-        }
-      }, 200);
-    }
-  });
+    document.getElementById("closeEmailGate").onclick = () => {
+      modal.style.display = "none";
+    };
+  }
 
-} catch (err) {
-  console.error("❌ Error loading module:", err);
-  container.innerHTML = '<p style="color:red;">Error loading module.</p>';
-}
-    
-  // 🧠 Override switchTab to inject email gate logic
-  const originalSwitchTab = switchTab;
+  originalSwitchTab = switchTab;
   switchTab = function (key, tabEl) {
     const emailStored = localStorage.getItem("candoo-user-email");
     if (gatedModules.includes(key) && !emailStored) {
@@ -174,8 +208,24 @@
     originalSwitchTab(key, tabEl);
   };
 
+  document.getElementById('resetAllBtn').addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear all module results? This cannot be undone.')) {
+      const keysToClear = [
+        'payroll-waste-inputs',
+        'customer-churn-inputs',
+        'leadership-drag-inputs',
+        'workforce-productivity-inputs',
+        'productivity-deep-dive-inputs',
+        'industry',
+        'candoo-user-email'
+      ];
+      keysToClear.forEach(key => localStorage.removeItem(key));
+      location.reload();
+    }
+  });
+
   window.onload = loadVisibility;
-  </script>
+</script>
 
   <script>
     document.getElementById('resetAllBtn').addEventListener('click', () => {
