@@ -306,5 +306,42 @@
   </div>
 </div>
 
+
+<script>
+  function sendEmailToSheet(email) {
+    const timestamp = new Date().toISOString();
+    const data = new URLSearchParams();
+    data.append("email", email);
+    data.append("timestamp", timestamp);
+    data.append("source", "module-unlock");
+
+    fetch("https://script.google.com/macros/s/AKfycbwbtb1kDD5fOJrtCVtfcVq2H5vdgrpYhw89zpnJryUEiuset9AUBWSkNRPTU_5So-t-/exec", {
+      method: "POST",
+      body: data,
+    }).then((response) => {
+      if (!response.ok) throw new Error("Network response was not ok");
+      return response.text();
+    }).then((text) => {
+      console.log("Logged to sheet:", text);
+    }).catch((error) => {
+      console.error("Logging failed:", error);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const emailInput = document.querySelector("#email");
+    const unlockButton = document.querySelector("#unlock-button");
+
+    if (unlockButton && emailInput) {
+      unlockButton.addEventListener("click", () => {
+        const email = emailInput.value.trim();
+        if (email) {
+          sendEmailToSheet(email);
+        }
+      });
+    }
+  });
+</script>
+
 </body>
 </html>
