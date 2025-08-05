@@ -126,41 +126,42 @@
           return;
         }
       }
+     try {
+  const response = await fetch(module.file);
+  const html = await response.text();
 
-      try {
-        const response = await fetch(module.file);
-        const html = await response.text();
+  document.querySelectorAll('script[data-injected]').forEach(script => script.remove());
+  container.innerHTML = html;
+  document.querySelector('.intro')?.classList.remove('hidden');
 
-        document.querySelectorAll('script[data-injected]').forEach(script => script.remove());
-        container.innerHTML = html;
-        document.querySelector('.intro')?.classList.remove('hidden');
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
 
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        tempDiv.querySelectorAll('script').forEach(oldScript => {
-          const newScript = document.createElement('script');
-          if (oldScript.src) {
-            newScript.src = oldScript.src;
-          } else {
-            newScript.textContent = oldScript.textContent;
-          }
-          newScript.setAttribute('data-injected', 'true');
-          document.body.appendChild(newScript);
-
-          // ✅ Special handling: render reCAPTCHA manually if needed
-          if (oldScript.textContent.includes("window.renderCaptcha")) {
-            setTimeout(() => {
-              if (typeof renderCaptcha === "function") renderCaptcha();
-            }, 500);
-          }
-        });
-
-      } catch (err) {
-        console.error("❌ Error loading module:", err);
-        container.innerHTML = '<p style="color:red;">Error loading module.</p>';
-      }
+  tempDiv.querySelectorAll('script').forEach(oldScript => {
+    const newScript = document.createElement('script');
+    if (oldScript.src) {
+      newScript.src = oldScript.src;
+    } else {
+      newScript.textContent = oldScript.textContent;
     }
+    newScript.setAttribute('data-injected', 'true');
+    document.body.appendChild(newScript);
 
+    // ✅ FIXED: reCAPTCHA ready check
+    if (oldScript.textContent.includes("window.renderCaptcha")) {
+      const checkReady = setInterval(() => {
+        if (typeof grecaptcha !== "undefined" && typeof renderCaptcha === "function") {
+          renderCaptcha();
+          clearInterval(checkReady);
+        }
+      }, 200);
+    }
+  });
+
+} catch (err) {
+  console.error("❌ Error loading module:", err);
+  container.innerHTML = '<p style="color:red;">Error loading module.</p>';
+}
     
   // 🧠 Override switchTab to inject email gate logic
   const originalSwitchTab = switchTab;
