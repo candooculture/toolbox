@@ -244,55 +244,6 @@
       }
     });
   </script>
-  
-  <script>
-  const gatedModules = ["customer_churn", "workforce_productivity", "productivity_dive"];
-
-  const showEmailGate = (nextTabKey) => {
-    const modal = document.getElementById("emailGateModal");
-    const unlockBtn = document.getElementById("unlockBtn");
-    const feedback = document.getElementById("unlock-feedback");
-
-    modal.style.display = "flex";
-    feedback.style.display = "none";
-
-    unlockBtn.onclick = () => {
-      const email = document.getElementById("unlock-email").value.trim();
-      if (!email || !email.includes("@")) {
-        feedback.textContent = "Please enter a valid email.";
-        feedback.style.display = "block";
-        return;
-      }
-
-      localStorage.setItem("candoo-user-email", email);
-
-      // 🔄 Send to backend
-      fetch("https://candoo-clarity.onrender.com/unlock-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-
-      // ✅ Reload to refresh locked tab states
-      location.reload(); // kills anything after this
-      return;
-    };
-
-    document.getElementById("closeEmailGate").onclick = () => {
-      modal.style.display = "none";
-    };
-  };
-
-  // 🧠 Override switchTab to inject email gate logic
-  switchTab = function (key, tabEl) {
-    const emailStored = localStorage.getItem("candoo-user-email");
-    if (gatedModules.includes(key) && !emailStored) {
-      showEmailGate(key);
-      return;
-    }
-    originalSwitchTab(key, tabEl);
-  };
-</script>
 
  <!-- 🔒 Styled Email Gate Modal with Close Button -->
 <div id="emailGateModal" style="
