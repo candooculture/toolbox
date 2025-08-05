@@ -228,30 +228,31 @@
 </script>
 
   <script>
+  function clearAllModuleResults() {
+    const confirmed = confirm('Are you sure you want to clear all module results? This cannot be undone.');
+    if (!confirmed) return;
+
+    const keysToClear = [
+      'payroll-waste-inputs',
+      'customer-churn-inputs',
+      'leadership-drag-inputs',
+      'workforce-productivity-inputs',
+      'productivity-deep-dive-inputs',
+      'industry',
+      'candoo-user-email'
+    ];
+    keysToClear.forEach(key => localStorage.removeItem(key));
+
+    setTimeout(() => {
+      location.reload();
+    }, 200);
+  }
+
   window.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetAllBtn');
-    if (!resetBtn) return;
-
-    resetBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const confirmed = confirm('Are you sure you want to clear all module results? This cannot be undone.');
-      if (!confirmed) return;
-
-      const keysToClear = [
-        'payroll-waste-inputs',
-        'customer-churn-inputs',
-        'leadership-drag-inputs',
-        'workforce-productivity-inputs',
-        'productivity-deep-dive-inputs',
-        'industry',
-        'candoo-user-email'
-      ];
-      keysToClear.forEach(key => localStorage.removeItem(key));
-
-      setTimeout(() => {
-        location.reload();
-      }, 200); // Give the DOM time to detach cleanly before reload
-    });
+    if (resetBtn) {
+      resetBtn.onclick = clearAllModuleResults;
+    }
   });
 </script>
 
