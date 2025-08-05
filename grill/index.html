@@ -186,7 +186,7 @@
           'workforce-productivity-inputs',
           'productivity-deep-dive-inputs',
           'industry',
-          'candoo-user-email'
+          ''
         ];
         keysToClear.forEach(key => localStorage.removeItem(key));
         location.reload();
@@ -206,27 +206,29 @@
     feedback.style.display = "none";
 
     unlockBtn.onclick = () => {
-  const email = document.getElementById("unlock-email").value.trim();
-  if (!email || !email.includes("@")) {
-    feedback.textContent = "Please enter a valid email.";
-    feedback.style.display = "block";
-    return;
-  }
+      const email = document.getElementById("unlock-email").value.trim();
+      if (!email || !email.includes("@")) {
+        feedback.textContent = "Please enter a valid email.";
+        feedback.style.display = "block";
+        return;
+      }
 
-  localStorage.setItem("candoo-user-email", email);
+      localStorage.setItem("candoo-user-email", email);
 
-  // 🔄 Send to Google Sheets via webhook
-  fetch("https://candoo-clarity.onrender.com/unlock-user", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email })
-  });
+      // 🔄 Send to backend
+      fetch("https://candoo-clarity.onrender.com/unlock-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
 
-    modal.style.display = "none";
-    switchTab(nextTabKey, document.querySelector(`.tab:nth-child(${Object.keys(calculators).indexOf(nextTabKey)+1})`));
-  };
+      // ✅ Reload to refresh locked tab states
+      location.reload(); // kills anything after this
+      return;
+    };
+
     document.getElementById("closeEmailGate").onclick = () => {
-    document.getElementById("emailGateModal").style.display = "none";
+      modal.style.display = "none";
     };
   };
 
