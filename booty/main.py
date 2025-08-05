@@ -345,3 +345,32 @@ async def send_risk_report(request: Request):
         return {"success": True, "message": "Report sent."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/unlock-user")
+async def unlock_user_email(request: Request):
+    try:
+        data = await request.json()
+        email = data.get("email")
+        if not email or "@" not in email:
+            raise HTTPException(status_code=400, detail="Invalid email.")
+
+        # Forward to Google Apps Script
+        gs_url = "https://script.google.com/macros/s/AKfycbwbtb1kDD5fOJrtCVtfcVq2H5vdgrpYhw89zpnJryUEiuset9AUBWSkNRPTU_5So-t-/exec"
+        timestamp = pd.Timestamp.now().isoformat()
+
+        response = requests.post(
+            gs_url,
+            data={
+                "email": email,
+                "timestamp": timestamp,
+                "source": "module-unlock"
+            }
+        )
+
+        if not response.ok:
+            raise Exception(f"Google Sheets logging failed: {response.text}")
+
+        return {"success": True}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
