@@ -79,15 +79,26 @@
       }
 
       Object.keys(calculators).forEach((key) => {
-        if (!visibleKeys.includes(key) && key !== '__admin__') return;
-
-        const { name } = calculators[key];
-        const tab = document.createElement('div');
-        tab.className = key === '__admin__' ? 'tab admin-tab' : 'tab';
+      if (!visibleKeys.includes(key) && key !== '__admin__') return;
+    
+      const { name } = calculators[key];
+      const tab = document.createElement('div');
+      tab.className = 'tab';
+    
+      const emailStored = localStorage.getItem("candoo-user-email");
+      const isGated = ["customer_churn", "workforce_productivity", "productivity_dive"].includes(key);
+    
+      // 🔒 Apply locked visual state
+      if (isGated && !emailStored) {
+        tab.classList.add("locked");
+        tab.innerHTML = `🔒 ${name}`;
+      } else {
         tab.innerHTML = name;
-        tab.onclick = () => switchTab(key, tab);
-        tabsDiv.appendChild(tab);
-      });
+      }
+    
+      tab.onclick = () => switchTab(key, tab);
+      tabsDiv.appendChild(tab);
+    });
 
       const firstKey = visibleKeys.find(k => k !== '__admin__');
       const firstTab = tabsDiv.querySelector('.tab');
