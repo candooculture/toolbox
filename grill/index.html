@@ -94,6 +94,9 @@
         tab.classList.add("locked");
         tab.innerHTML = `🔒 ${name}`;
       } else {
+        tab.classList.remove("locked");
+        tab.innerHTML = name;
+      } else {
         tab.innerHTML = name;
       }
     
@@ -161,7 +164,19 @@
       }
     }
 
-    window.onload = loadVisibility;
+    // 🧠 Override switchTab to inject email gate logic
+  const originalSwitchTab = switchTab;
+  switchTab = function (key, tabEl) {
+    const emailStored = localStorage.getItem("candoo-user-email");
+    if (gatedModules.includes(key) && !emailStored) {
+      showEmailGate(key);
+      return;
+    }
+    originalSwitchTab(key, tabEl);
+  };
+};
+
+  window.onload = loadVisibility;
   </script>
 
   <script>
@@ -222,17 +237,7 @@
     document.getElementById("emailGateModal").style.display = "none";
   };
 
-  // 🧠 Override switchTab to inject email gate logic
-  const originalSwitchTab = switchTab;
-  switchTab = function (key, tabEl) {
-    const emailStored = localStorage.getItem("candoo-user-email");
-    if (gatedModules.includes(key) && !emailStored) {
-      showEmailGate(key);
-      return;
-    }
-    originalSwitchTab(key, tabEl);
-  };
-};
+  
 </script>
 
  <!-- 🔒 Styled Email Gate Modal with Close Button -->
