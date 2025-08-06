@@ -389,7 +389,18 @@ async def load_protected_module(request: Request):
 
     try:
         full_path = os.path.join(os.path.dirname(__file__), "..", "grill", module_file)
+        print("🔍 Trying to load:", full_path)
+
+        if not os.path.isfile(full_path):
+            print("❌ File does NOT exist:", full_path)
+            raise HTTPException(status_code=404, detail="Module not found")
+
         with open(full_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read(), status_code=200)
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Module not found")
+            content = f.read()
+
+        print("✅ File loaded. Length:", len(content))
+        return HTMLResponse(content=content, status_code=200)
+
+    except Exception as e:
+        print("❌ Unexpected error:", str(e))
+        raise HTTPException(status_code=500, detail="Server error")
