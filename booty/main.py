@@ -376,6 +376,7 @@ async def unlock_user_email(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 from fastapi.responses import HTMLResponse
+import os
 
 @app.post("/api/load-protected-module")
 async def load_protected_module(request: Request):
@@ -387,7 +388,8 @@ async def load_protected_module(request: Request):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     try:
-        with open(module_file, "r", encoding="utf-8") as f:
+        full_path = os.path.join(os.path.dirname(__file__), "..", "grill", module_file)
+        with open(full_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read(), status_code=200)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Module not found")
