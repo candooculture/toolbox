@@ -244,9 +244,10 @@
 
     document.addEventListener("DOMContentLoaded", () => {
   const closeBtn = document.getElementById("closeEmailGate");
-  if (closeBtn) {
+  const modal = document.getElementById("emailGateModal");
+  if (closeBtn && modal) {
     closeBtn.onclick = () => {
-      closeBtn.style.display = "none";
+      modal.style.display = "none";
     };
   }
 });
