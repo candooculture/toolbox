@@ -391,7 +391,7 @@ async def load_protected_module(request: Request):
     # Path logic
     try:
         # e.g., grill/module-name.html
-        full_path = os.path.join(os.path.dirname(__file__), "..", "grill", module_file)
+       full_path = os.path.abspath("grill/" + module_file)
         print("🔍 Attempting to load:", full_path)
 
         if not os.path.isfile(full_path):
