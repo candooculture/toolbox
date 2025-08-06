@@ -376,7 +376,6 @@ async def unlock_user_email(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 from fastapi.responses import HTMLResponse
-import os
 
 @app.post("/api/load-protected-module")
 async def load_protected_module(request: Request):
@@ -388,17 +387,6 @@ async def load_protected_module(request: Request):
     if password != os.getenv("ADMIN_PASSWORD"):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    @app.post("/api/load-protected-module")
-async def load_protected_module(request: Request):
-    data = await request.json()
-    password = data.get("password")
-    module_file = data.get("module")
-
-    # Password check
-    if password != os.getenv("ADMIN_PASSWORD"):
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    # Path logic
     try:
         # e.g., grill/module-name.html
         full_path = os.path.join(os.path.dirname(__file__), "..", "grill", module_file)
