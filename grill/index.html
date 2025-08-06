@@ -123,10 +123,38 @@
 
     if (module.protected) {
       const password = prompt("Enter admin password:");
-      if (password !== "toolbox12103032") {
+    
+      const response = await fetch("/api/load-protected-module", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, module: module.file })
+      });
+    
+      if (!response.ok) {
         container.innerHTML = '<p style="color:red;">Access denied.</p>';
         return;
       }
+    
+      const html = await response.text();
+    
+      document.querySelectorAll('script[data-injected]').forEach(script => script.remove());
+      container.innerHTML = html;
+    
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = html;
+    
+      tempDiv.querySelectorAll("script").forEach(oldScript => {
+        const newScript = document.createElement("script");
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        newScript.setAttribute("data-injected", "true");
+        document.body.appendChild(newScript);
+      });
+    
+      return;
     }
 
     try {
