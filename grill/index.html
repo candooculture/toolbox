@@ -124,7 +124,7 @@
     if (module.protected) {
       const password = prompt("Enter admin password:");
     
-      const response = await fetch("/api/load-protected-module", {
+      const response = await fetch("https://candoo-clarity.onrender.com/api/load-protected-module", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password, module: module.file })
