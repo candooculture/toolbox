@@ -376,6 +376,7 @@ async def unlock_user_email(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 from fastapi.responses import HTMLResponse
+import os
 
 @app.post("/api/load-protected-module")
 async def load_protected_module(request: Request):
@@ -387,10 +388,13 @@ async def load_protected_module(request: Request):
     if password != os.getenv("ADMIN_PASSWORD"):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
+    # Resolve path to project root and target HTML file in grill/
     try:
-        # e.g., grill/module-name.html
-        full_path = os.path.join(os.path.dirname(__file__), "..", "grill", module_file)
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        full_path = os.path.join(project_root, "grill", module_file)
+        
         print("🔍 Attempting to load:", full_path)
+        print("📂 File exists:", os.path.isfile(full_path))
 
         if not os.path.isfile(full_path):
             raise FileNotFoundError(f"❌ Module file not found at path: {full_path}")
