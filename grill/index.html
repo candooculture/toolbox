@@ -242,9 +242,14 @@
       
     };
 
-    document.getElementById("closeEmailGate").onclick = () => {
-      modal.style.display = "none";
+    document.addEventListener("DOMContentLoaded", () => {
+  const closeBtn = document.getElementById("closeEmailGate");
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      closeBtn.style.display = "none";
     };
+  }
+});
 
   originalSwitchTab = switchTab;
   switchTab = function (key, tabEl) {
