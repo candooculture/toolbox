@@ -206,7 +206,39 @@
     modal.style.display = "flex";
     feedback.style.display = "none";
 
-    unlockBtn.onclick = () => {
+    unlockBtn.onclick = async (event) => {
+  event.preventDefault();
+
+  const email = document.getElementById("unlock-email").value.trim();
+  const feedback = document.getElementById("unlock-feedback");
+
+  if (!email || !email.includes("@")) {
+    feedback.textContent = "Please enter a valid email.";
+    feedback.style.display = "block";
+    return;
+  }
+
+  localStorage.setItem("candoo-user-email", email);
+
+  try {
+    const res = await fetch("https://candoo-clarity.onrender.com/unlock-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+    if (!res.ok) {
+      throw new Error("Unlock logging failed.");
+    }
+
+    console.log("✅ Unlock logged to backend.");
+    location.reload();
+  } catch (err) {
+    console.error("❌ Error logging unlock:", err);
+    feedback.textContent = "Unlock failed. Please try again.";
+    feedback.style.display = "block";
+  }
+};
       const email = document.getElementById("unlock-email").value.trim();
       if (!email || !email.includes("@")) {
         feedback.textContent = "Please enter a valid email.";
@@ -217,23 +249,12 @@
       localStorage.setItem("candoo-user-email", email);
 
       fetch("https://candoo-clarity.onrender.com/unlock-user", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email })
-})
-.then(response => {
-  if (!response.ok) {
-    throw new Error("Unlock logging failed.");
-  }
-  console.log("✅ Unlock logged to backend.");
-  location.reload();
-})
-.catch(err => {
-  console.error("❌ Error logging unlock:", err);
-  feedback.textContent = "Unlock failed. Please try again.";
-  feedback.style.display = "block";
-});
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
 
+      location.reload();
     };
 
     document.getElementById("closeEmailGate").onclick = () => {
