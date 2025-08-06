@@ -389,9 +389,8 @@ async def load_protected_module(request: Request):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     # Path logic
-    try:
-        # e.g., grill/module-name.html
-       full_path = os.path.abspath("grill/" + module_file)
+        try:
+        full_path = os.path.abspath("grill/" + module_file)
         print("🔍 Attempting to load:", full_path)
 
         if not os.path.isfile(full_path):
