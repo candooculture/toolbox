@@ -323,17 +323,21 @@
   ">
     <!-- ❌ Clean, Minimal Close Button -->
     <button id="closeEmailGate" style="
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: transparent;
-      border: none;
-      font-size: 24px;
-      font-weight: 400;
-      color: #222;
-      cursor: pointer;
-      line-height: 1;
-    " aria-label="Close">
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    font-weight: 400;
+    color: #222;
+    cursor: pointer;
+    line-height: 1;
+    outline: none;
+    box-shadow: none;
+    " 
+    onfocus="this.style.outline='none'; this.style.boxShadow='none';" 
+    aria-label="Close">
       &times;
     </button>
 
