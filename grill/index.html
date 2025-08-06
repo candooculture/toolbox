@@ -152,7 +152,11 @@
 
         if (oldScript.textContent.includes("window.renderCaptcha")) {
           const checkReady = setInterval(() => {
-            if (typeof grecaptcha !== "undefined" && typeof renderCaptcha === "function") {
+            if (
+              typeof grecaptcha !== "undefined" &&
+              typeof grecaptcha.render === "function" &&
+              typeof renderCaptcha === "function"
+            ) {
               renderCaptcha();
               clearInterval(checkReady);
             }
