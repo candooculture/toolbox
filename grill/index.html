@@ -321,19 +321,26 @@
     box-shadow: 0 12px 32px rgba(0,0,0,0.2);
     position: relative;
   ">
-    <!-- ❌ Close Button -->
+    <!-- ❌ Close Button (Upgraded) -->
     <button id="closeEmailGate" style="
       position: absolute;
-      top: 12px;
-      right: 14px;
-      background: transparent;
-      border: none;
+      top: -18px;
+      right: -18px;
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
       font-size: 20px;
-      color: #666;
+      font-weight: bold;
+      color: #333;
       cursor: pointer;
-      outline: none;
-      box-shadow: none;
-      "onfocus="this.style.outline='none'; this.style.boxShadow='none';" aria-label="Close">
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    " aria-label="Close">
       &times;
     </button>
 
