@@ -217,12 +217,23 @@
       localStorage.setItem("candoo-user-email", email);
 
       fetch("https://candoo-clarity.onrender.com/unlock-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email })
+})
+.then(response => {
+  if (!response.ok) {
+    throw new Error("Unlock logging failed.");
+  }
+  console.log("✅ Unlock logged to backend.");
+  location.reload();
+})
+.catch(err => {
+  console.error("❌ Error logging unlock:", err);
+  feedback.textContent = "Unlock failed. Please try again.";
+  feedback.style.display = "block";
+});
 
-      location.reload();
     };
 
     document.getElementById("closeEmailGate").onclick = () => {
