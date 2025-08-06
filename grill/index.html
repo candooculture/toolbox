@@ -239,28 +239,12 @@
     feedback.style.display = "block";
   }
 };
-      const email = document.getElementById("unlock-email").value.trim();
-      if (!email || !email.includes("@")) {
-        feedback.textContent = "Please enter a valid email.";
-        feedback.style.display = "block";
-        return;
-      }
-
-      localStorage.setItem("candoo-user-email", email);
-
-      fetch("https://candoo-clarity.onrender.com/unlock-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-
-      location.reload();
+      
     };
 
     document.getElementById("closeEmailGate").onclick = () => {
       modal.style.display = "none";
     };
-  }
 
   originalSwitchTab = switchTab;
   switchTab = function (key, tabEl) {
