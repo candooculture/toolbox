@@ -219,6 +219,11 @@
     return;
   }
 
+  // Disable the button and show loading text
+  unlockBtn.disabled = true;
+  const originalText = unlockBtn.textContent;
+  unlockBtn.textContent = "Unlocking...";
+
   localStorage.setItem("candoo-user-email", email);
 
   try {
@@ -238,6 +243,8 @@
     console.error("❌ Error logging unlock:", err);
     feedback.textContent = "Unlock failed. Please try again.";
     feedback.style.display = "block";
+    unlockBtn.disabled = false;
+    unlockBtn.textContent = originalText;
   }
 };
       
