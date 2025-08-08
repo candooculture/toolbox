@@ -45,7 +45,11 @@
   </div>
 
   <div class="module-wrapper">
-    <div class="tabs" id="tabs"></div>
+    <div class="pyramid-tabs">
+    <div class="tab-row top" id="tabs-top"></div>
+    <div class="tab-row middle" id="tabs-middle"></div>
+    <div class="tab-row bottom" id="tabs-bottom"></div>
+  </div>
     <div class="content" id="contentContainer">Loading...</div>
   </div>
 
@@ -64,53 +68,63 @@
   let originalSwitchTab;
 
   async function loadVisibility() {
-    const tabsDiv = document.getElementById('tabs');
-    const container = document.getElementById('contentContainer');
-    tabsDiv.innerHTML = '';
+  const rowTop = document.getElementById('tabs-top');
+  const rowMid = document.getElementById('tabs-middle');
+  const rowBot = document.getElementById('tabs-bottom');
 
-    let visibleKeys = [];
+  [rowTop, rowMid, rowBot].forEach(row => row.innerHTML = '');
 
-    try {
-      const res = await fetch('https://candoo-clarity.onrender.com/admin/get-visibility');
-      const data = await res.json();
-      if (data.status === 'success' && Array.isArray(data.data)) {
-        visibleKeys = data.data
-          .filter(item => item.visible)
-          .map(item => item.calculator);
-      }
-    } catch (err) {
-      console.warn("⚠️ Could not load visibility settings from backend. Defaulting to all.");
-      visibleKeys = Object.keys(calculators).filter(k => !calculators[k].protected);
+  let visibleKeys = [];
+
+  try {
+    const res = await fetch('https://candoo-clarity.onrender.com/admin/get-visibility');
+    const data = await res.json();
+    if (data.status === 'success' && Array.isArray(data.data)) {
+      visibleKeys = data.data
+        .filter(item => item.visible)
+        .map(item => item.calculator);
     }
-
-    Object.keys(calculators).forEach((key) => {
-      if (!visibleKeys.includes(key) && key !== '__admin__') return;
-
-      const { name } = calculators[key];
-      const tab = document.createElement('div');
-      tab.className = 'tab';
-
-      const emailStored = localStorage.getItem("candoo-user-email");
-      const isGated = gatedModules.includes(key);
-
-      if (isGated && !emailStored) {
-        tab.classList.add("locked");
-        tab.innerHTML = `🔒 ${name}`;
-      } else {
-        tab.innerHTML = name;
-      }
-
-      tab.onclick = () => switchTab(key, tab);
-      tabsDiv.appendChild(tab);
-    });
-
-    const firstKey = visibleKeys.find(k => k !== '__admin__');
-    const firstTab = tabsDiv.querySelector('.tab');
-    if (firstTab && firstKey) {
-      firstTab.classList.add('active');
-      switchTab(firstKey, firstTab);
-    }
+  } catch (err) {
+    console.warn("⚠️ Could not load visibility settings from backend. Defaulting to all.");
+    visibleKeys = Object.keys(calculators).filter(k => !calculators[k].protected);
   }
+
+  Object.keys(calculators).forEach((key) => {
+    if (!visibleKeys.includes(key) && key !== '__admin__') return;
+
+    const { name } = calculators[key];
+    const tab = document.createElement('div');
+    tab.className = 'tab';
+
+    const emailStored = localStorage.getItem("candoo-user-email");
+    const isGated = gatedModules.includes(key);
+
+    if (isGated && !emailStored) {
+      tab.classList.add("locked");
+      tab.innerHTML = `🔒 ${name}`;
+    } else {
+      tab.innerHTML = name;
+    }
+
+    tab.onclick = () => switchTab(key, tab);
+
+    // Place each tab in the correct row
+    if (["team_efficiency", "customer_churn", "leadership_drag"].includes(key)) {
+      rowTop.appendChild(tab);
+    } else if (["workforce_productivity", "productivity_dive"].includes(key)) {
+      rowMid.appendChild(tab);
+    } else if (key === "operational_risk") {
+      rowBot.appendChild(tab);
+    }
+  });
+
+  const firstKey = visibleKeys.find(k => k !== '__admin__');
+  const firstTab = document.querySelector('.tab');
+  if (firstTab && firstKey) {
+    firstTab.classList.add('active');
+    switchTab(firstKey, firstTab);
+  }
+}
 
   async function switchTab(key, tabEl) {
     const module = calculators[key];
