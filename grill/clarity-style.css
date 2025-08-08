@@ -36,7 +36,12 @@ body {
   top: 20px;
   left: 20px;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
 }
+
 .logo img {
   width: 60px;
   max-width: 25vw;
@@ -44,23 +49,21 @@ body {
   opacity: 0.9;
   transition: opacity 0.2s ease-in-out;
 }
+
 .logo img:hover {
   opacity: 1;
-}
-.logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
 }
 
 .logo-tag {
   font-size: 11px;
   color: #00E0FF;
-  font-weight: 400;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
   text-align: center;
-  opacity: 0.7;
-  margin-top: 2px;
+  margin-top: 4px;
+  opacity: 0.75;
+  text-decoration: none;
+  line-height: 1.2;
 }
 
 /* TYPOGRAPHY */
