@@ -163,6 +163,30 @@ small,
   transition: opacity 0.2s ease-in-out;
 }
 
+.pyramid-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-top: 24px;
+  margin-bottom: 16px;
+}
+
+.tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.tab-row.top {
+  margin-bottom: 8px;
+}
+
+.tab-row.middle {
+  margin-bottom: 8px;
+}
+
 /* CONTENT */
 .content {
   background-color: #333;
