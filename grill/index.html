@@ -50,6 +50,10 @@
     <div class="tab-row middle" id="tabs-middle"></div>
     <div class="tab-row bottom" id="tabs-bottom"></div>
   </div>
+  
+    <div class="admin-link-wrapper">
+    <a href="#" class="admin-link" onclick="switchTab('__admin__', this)">admin</a>
+  </div>
     <div class="content" id="contentContainer">Loading...</div>
   </div>
 
@@ -90,7 +94,7 @@
   }
 
   Object.keys(calculators).forEach((key) => {
-    if (!visibleKeys.includes(key) && key !== '__admin__') return;
+    if (!visibleKeys.includes(key) || key === '__admin__') return;
 
     const { name } = calculators[key];
     const tab = document.createElement('div');
