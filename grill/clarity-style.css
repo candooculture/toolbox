@@ -272,3 +272,23 @@ small,
 .ors-warning li {
   margin-bottom: 10px;
 }
+
+.admin-link-wrapper {
+  text-align: right;
+  width: 100%;
+  padding-right: 20px;
+  margin-top: -10px;
+}
+
+.admin-link {
+  font-size: 12px;
+  opacity: 0.5;
+  color: #fff;
+  text-decoration: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.admin-link:hover {
+  opacity: 0.8;
+}
+
