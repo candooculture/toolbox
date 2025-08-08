@@ -47,6 +47,21 @@ body {
 .logo img:hover {
   opacity: 1;
 }
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo-tag {
+  font-size: 11px;
+  color: #00E0FF;
+  font-weight: 400;
+  text-align: center;
+  opacity: 0.7;
+  margin-top: 2px;
+}
 
 /* TYPOGRAPHY */
 h1 {
