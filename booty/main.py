@@ -12,6 +12,7 @@ from calculator import (
     calculate_productivity_metrics_dive,
 )
 from operational_risk import run_operational_risk, RiskInput
+from profit_projection import router as profit_router
 import pandas as pd
 import os
 import requests
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 
 app.include_router(admin_router)
+app.include_router(profit_router)
 
 # === Input Models ===
 
