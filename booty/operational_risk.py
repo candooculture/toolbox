@@ -75,10 +75,10 @@ def run_operational_risk(data: RiskInput):
             productivity_loss = productivity_gap_pct * payroll_cost
             module_losses["Workforce Productivity"] = round(max(productivity_loss, 0), 2)
 
-        # === Process Gaps (Deep Dive) ===
+        # === Productivity (Deep Dive) ===
         if inputs["avg_hours"] > 0 and inputs["absenteeism_days"] > 0:
-            deep_dive_loss = (inputs["absenteeism_days"] / 20) * inputs["avg_salary"] * inputs["total_employees"]
-            module_losses["Process Gaps (Deep Dive)"] = round(deep_dive_loss, 2)
+            deep_dive_loss = (inputs["absenteeism_days"] / 20) * inputs["avg_salary"]
+            module_losses["Productivity (Deep Dive)"] = round(deep_dive_loss, 2)
 
         # === Totals and Risk Score ===
         total_risk = sum(module_losses.values())
