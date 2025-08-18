@@ -20,13 +20,25 @@ import requests
 app = FastAPI()
 
 # === CORS ===
+from fastapi.middleware.cors import CORSMiddleware  # (only if not already imported)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://www.candooculture.com",
+        "https://candooculture.com",
+        "https://clarity.candooculture.com",
+        "https://candooculture.webflow.io",  # drop this if you no longer preview via Webflow
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
+    allow_methods=["POST", "GET", "OPTIONS"],
+    allow_headers=["*"],
 )
+
+# Health check (add once, anywhere after app = FastAPI())
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
 
 app.include_router(admin_router)
 app.include_router(profit_router)
