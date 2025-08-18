@@ -172,22 +172,45 @@ def calculate_productivity_metrics(data):
 
 
 def calculate_productivity_metrics_dive(data):
+    """
+    Deep Dive treats `absenteeism_days` as TOTAL workforce days/month.
+    If left blank, convert benchmark (per-employee) -> total using headcount.
+    Daily rate is derived from benchmarked hours: 152 h/mo ≈ 20 workdays/mo.
+    """
     b = industry_benchmarks(data.industry)
     monthly_salary = data.avg_salary / 12
+
     target_hours = b.get("Target Hours per Employee (Value)", 160)
     utilisation_benchmark = b.get("Utilisation Rate (%) (Value)", 75)
-    absenteeism_benchmark = b.get("Absenteeism Days per Month (Value)", 4)
+    absenteeism_benchmark = b.get("Absenteeism Days per Month (Value)", 4)  # per-employee days/month
     overtime_benchmark = b.get("Overtime Dependency (%) (Value)", 10)
     output_per_employee = b.get(
         "Output per Employee (AUD/month) (Value)", 12000)
 
-    absenteeism_days = data.absenteeism_days or absenteeism_benchmark
-    avg_hours = data.avg_hours or target_hours
+    total_employees = getattr(data, "total_employees", 0) or 0
+
+    # Interpret field as TOTAL workforce days/month.
+    # If user leaves it blank, the benchmark is per-employee → convert to total.
+    user_absent = getattr(data, "absenteeism_days", None)
+    if (not user_absent) and total_employees:
+        absenteeism_days = absenteeism_benchmark * total_employees
+    else:
+        absenteeism_days = user_absent or 0
+
+    # Guardrail: if they typed the per-employee benchmark value by mistake, convert.
+    if total_employees and absenteeism_days <= 30 and abs(absenteeism_days - absenteeism_benchmark) < 1e-9:
+        absenteeism_days = absenteeism_days * total_employees
+
+    avg_hours = getattr(data, "avg_hours", None) or target_hours
 
     utilisation_gap = max(0, (target_hours - avg_hours) / target_hours)
     underutilisation_cost = utilisation_gap * \
-        output_per_employee * data.total_employees
-    avg_daily_salary = data.avg_salary / 260
+        output_per_employee * total_employees
+
+    # Daily salary derived from benchmarked hours (7.6 h/day)
+    work_days_per_month = target_hours / 7.6  # ≈ 20 at 152 h/mo
+    avg_daily_salary = (monthly_salary / work_days_per_month) if work_days_per_month else 0.0
+
     absenteeism_cost = absenteeism_days * avg_daily_salary
 
     return {
@@ -199,7 +222,7 @@ def calculate_productivity_metrics_dive(data):
         "benchmark_messages": [
             f"Target Hours: {target_hours} hrs/month",
             f"Utilisation Benchmark: {utilisation_benchmark}%",
-            f"Absenteeism Benchmark: {absenteeism_benchmark} days/month",
+            f"Absenteeism Benchmark: {absenteeism_benchmark} days/employee/month",
             f"Overtime Dependency Benchmark: {overtime_benchmark}%",
         ],
         "straight_talk": f"These hidden gaps are costing up to AUD ${round(absenteeism_cost + underutilisation_cost):,} per month in missed productivity."
