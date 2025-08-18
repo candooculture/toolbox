@@ -100,6 +100,8 @@ def get_industry_benchmarks(industry: str):
         "inefficiency_rate": int(b.get("Process Inefficiency Rate (%) (Value)", 0)),
         "leadership_drag": int(b.get("Leadership Drag Impact (%) (Value)", 10)),
         "target_hours_per_employee": int(b.get("Target Hours per Employee (Value)", 160)),
+        # Expose per-employee source of truth and keep back-compat key
+        "absenteeism_days_per_employee": float(b.get("Absenteeism Days per Month (Value)", 1.0)),
         "absenteeism_days": float(b.get("Absenteeism Days per Month (Value)", 1.0)),
         "cac": int(b.get("Customer Acquisition Cost (CAC) (AUD) (Value)", 800))
     }
