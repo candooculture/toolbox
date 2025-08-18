@@ -412,10 +412,18 @@ async def load_protected_module(request: Request):
         print(f"💥 Error loading module HTML: {e}")
         raise HTTPException(status_code=500, detail="Failed to load module HTML")
 
-# ====== Order form endpoint (Phase 1 – plumbing only) ======
+# ====== Order form endpoint (Mailgun) ======
+import os, base64, hashlib
+import requests
 from pydantic import BaseModel
 from fastapi import HTTPException
 from typing import Optional, Dict
+
+MAILGUN_API_KEY  = os.getenv("MAILGUN_API_KEY")
+MAILGUN_DOMAIN   = os.getenv("MAILGUN_DOMAIN")            # e.g. mg.candooculture.com
+MAILGUN_SENDER   = os.getenv("MAILGUN_SENDER")            # e.g. orders@candooculture.com
+MAILGUN_API_BASE = os.getenv("MAILGUN_API_BASE", "https://api.mailgun.net")  # set to https://api.eu.mailgun.net if EU
+ORDER_NOTIFY     = os.getenv("ORDER_NOTIFY")              # optional internal recipient (e.g. aaron@...)
 
 class OrderPayload(BaseModel):
     form: Dict
@@ -425,17 +433,86 @@ class OrderPayload(BaseModel):
     user_agent: Optional[str] = None
     tz: Optional[str] = None
 
-@app.get("/healthz")
-def healthz():
-    return {"ok": True}
+def _esc(s: str) -> str:
+    return (str(s).replace("&","&amp;").replace("<","&lt;")
+                 .replace(">","&gt;").replace('"',"&quot;").replace("'","&#39;"))
 
 @app.post("/api/order-sign")
 async def order_sign(payload: OrderPayload):
-    # Minimal server-side checks (hash + email come next phase)
+    # Env guard
+    if not (MAILGUN_API_KEY and MAILGUN_DOMAIN and MAILGUN_SENDER):
+        raise HTTPException(status_code=500, detail="Mailgun not configured")
+
+    # Basic field checks (client already enforces these)
     f = payload.form or {}
     required = ["company","abn","name","title","email","phone","initial_users","start_date"]
     for k in required:
         if not str(f.get(k, "")).strip():
             raise HTTPException(status_code=422, detail=f"Missing field: {k}")
-    return {"ok": True}
-# ============================================================
+
+    # Verify PDF integrity
+    pdf_bytes = base64.b64decode(payload.pdf_base64)
+    sha_b64 = base64.b64encode(hashlib.sha256(pdf_bytes).digest()).decode()
+    if sha_b64 != payload.pdf_sha256_b64:
+        raise HTTPException(status_code=400, detail="PDF hash mismatch")
+
+    # Email body
+    plan = f.get("plan_tier", "Basic")
+    bill = f.get("billing_frequency", "Monthly")
+    html = f"""
+      <div style="font-family:Montserrat,Arial,sans-serif;line-height:1.55;color:#0b1a21">
+        <h2 style="margin:0 0 8px">Candoo Culture – Order Form</h2>
+        <p>Thanks for your order. A copy of the signed PDF is attached.</p>
+        <h3 style="margin:16px 0 6px">Summary</h3>
+        <table style="border-collapse:collapse">
+          <tbody>
+            <tr><td><strong>Company</strong></td><td style="padding-left:10px">{_esc(f['company'])}</td></tr>
+            <tr><td><strong>ABN/ACN</strong></td><td style="padding-left:10px">{_esc(f['abn'])}</td></tr>
+            <tr><td><strong>Signer</strong></td><td style="padding-left:10px">{_esc(f['name'])} ({_esc(f['title'])})</td></tr>
+            <tr><td><strong>Email</strong></td><td style="padding-left:10px">{_esc(f['email'])}</td></tr>
+            <tr><td><strong>Phone</strong></td><td style="padding-left:10px">{_esc(f['phone'])}</td></tr>
+            <tr><td><strong>Plan Tier</strong></td><td style="padding-left:10px">{_esc(plan)}</td></tr>
+            <tr><td><strong>Billing</strong></td><td style="padding-left:10px">{_esc(bill)}</td></tr>
+            <tr><td><strong>Initial Users</strong></td><td style="padding-left:10px">{_esc(f['initial_users'])}</td></tr>
+            <tr><td><strong>Start Date</strong></td><td style="padding-left:10px">{_esc(f['start_date'])}</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:16px;font-size:12px;color:#445a68">UA: {_esc(payload.user_agent or '')}</p>
+      </div>
+    """
+
+    # Send to customer + internal
+    to_list = [str(f["email"])]
+    data = {
+        "from": f"Candoo Culture <{MAILGUN_SENDER}>",
+        "to": to_list,
+        "subject": f"Candoo Order – {f['company']}",
+        "html": html,
+        "h:Reply-To": "aaron@candooculture.com",
+    }
+    # BCC internal copy (ORDER_NOTIFY beats sender)
+    if ORDER_NOTIFY:
+        data["bcc"] = [ORDER_NOTIFY]
+    else:
+        data["bcc"] = [MAILGUN_SENDER]
+
+    files = [
+        ("attachment", ("Candoo-Order.pdf", pdf_bytes, "application/pdf")),
+        # Optional: include the raw signature image:
+        # ("attachment", ("signature.png", base64.b64decode(payload.signature_png.split(",")[1]), "image/png")),
+    ]
+
+    r = requests.post(
+        f"{MAILGUN_API_BASE}/v3/{MAILGUN_DOMAIN}/messages",
+        auth=("api", MAILGUN_API_KEY),
+        data=data,
+        files=files,
+        timeout=20,
+    )
+
+    if r.status_code >= 300:
+        raise HTTPException(status_code=502, detail=f"Mailgun error: {r.text}")
+
+    msg_id = r.json().get("id") if "application/json" in r.headers.get("content-type","") else None
+    return {"ok": True, "id": msg_id}
+# ===========================================
