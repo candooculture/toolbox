@@ -236,7 +236,7 @@ def render_report_html(data):
         <li><strong>Customer Churn:</strong> {format_dollars(data.get("module_breakdown", {}).get("Customer Churn"))}</li>
         <li><strong>Leadership Drag:</strong> {format_dollars(data.get("module_breakdown", {}).get("Leadership Drag"))}</li>
         <li><strong>Workforce Productivity:</strong> {format_dollars(data.get("module_breakdown", {}).get("Workforce Productivity"))}</li>
-        <li><strong>Process Gaps:</strong> {format_dollars(data.get("module_breakdown", {}).get("Process Gaps (Deep Dive)"))}</li>
+        <li><strong>Productivity (Deep Dive):</strong> {format_dollars(data.get("module_breakdown", {}).get("Productivity (Deep Dive)"))}</li>
       </ul>
 
       <!-- INPUTS SUMMARY -->
