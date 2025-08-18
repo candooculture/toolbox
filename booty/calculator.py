@@ -170,42 +170,40 @@ def calculate_productivity_metrics(data):
 
 # === 8. PRODUCTIVITY DEEP DIVE ===
 
-
 def calculate_productivity_metrics_dive(data):
     """
     Deep Dive treats `absenteeism_days` as TOTAL workforce days/month.
-    If left blank, convert benchmark (per-employee) -> total using headcount.
-    Daily rate is derived from benchmarked hours: 152 h/mo ≈ 20 workdays/mo.
+    If left blank, convert benchmark (per-employee) → total using headcount.
+    Daily rate aligns to hours basis: 152 h/mo ⇒ ~20 workdays/mo.
     """
     b = industry_benchmarks(data.industry)
-    monthly_salary = data.avg_salary / 12
 
-    target_hours = b.get("Target Hours per Employee (Value)", 160)
+    # Benchmarks
+    target_hours = b.get("Target Hours per Employee (Value)", 160)  # hrs / employee / month
     utilisation_benchmark = b.get("Utilisation Rate (%) (Value)", 75)
     absenteeism_benchmark = b.get("Absenteeism Days per Month (Value)", 4)  # per-employee days/month
     overtime_benchmark = b.get("Overtime Dependency (%) (Value)", 10)
-    output_per_employee = b.get(
-        "Output per Employee (AUD/month) (Value)", 12000)
+    output_per_employee = b.get("Output per Employee (AUD/month) (Value)", 12000)
 
+    # Inputs
     total_employees = getattr(data, "total_employees", 0) or 0
+    avg_salary_annual = getattr(data, "avg_salary", 0.0) or 0.0
+    monthly_salary = avg_salary_annual / 12 if avg_salary_annual else 0.0
 
-    # Interpret field as TOTAL workforce days/month.
-    # If user leaves it blank, the benchmark is per-employee → convert to total.
+    # Absenteeism (TOTAL workforce days/month):
+    # If user left it blank/zero, prefill = per-emp benchmark × headcount
     user_absent = getattr(data, "absenteeism_days", None)
     if (not user_absent) and total_employees:
         absenteeism_days = absenteeism_benchmark * total_employees
     else:
-        absenteeism_days = user_absent or 0
+        absenteeism_days = float(user_absent or 0)
 
-    # Guardrail: if they typed the per-employee benchmark value by mistake, convert.
-    if total_employees and absenteeism_days <= 30 and abs(absenteeism_days - absenteeism_benchmark) < 1e-9:
-        absenteeism_days = absenteeism_days * total_employees
+    # No heuristic guardrail here — respect user-entered totals.
 
-    avg_hours = getattr(data, "avg_hours", None) or target_hours
+    avg_hours = float(getattr(data, "avg_hours", 0) or 0) or target_hours
 
-    utilisation_gap = max(0, (target_hours - avg_hours) / target_hours)
-    underutilisation_cost = utilisation_gap * \
-        output_per_employee * total_employees
+    utilisation_gap = max(0.0, (target_hours - avg_hours) / target_hours)
+    underutilisation_cost = utilisation_gap * output_per_employee * total_employees
 
     # Daily salary derived from benchmarked hours (7.6 h/day)
     work_days_per_month = target_hours / 7.6  # ≈ 20 at 152 h/mo
@@ -214,18 +212,22 @@ def calculate_productivity_metrics_dive(data):
     absenteeism_cost = absenteeism_days * avg_daily_salary
 
     return {
-        "formatted_labels": {"Absenteeism Cost": f"AUD ${round(absenteeism_cost):,}/month",
-                             "Utilisation Gap": f"{round(utilisation_gap * 100, 1)}%",
-                             "Output Loss from Under-utilisation": f"AUD ${round(underutilisation_cost):,}/month",
-                             "Output per Employee": f"AUD ${round(output_per_employee):,}/month"
-                             },
+        "formatted_labels": {
+            "Absenteeism Cost": f"AUD ${round(absenteeism_cost):,}/month",
+            "Utilisation Gap": f"{round(utilisation_gap * 100, 1)}%",
+            "Output Loss from Under-utilisation": f"AUD ${round(underutilisation_cost):,}/month",
+            "Output per Employee": f"AUD ${round(output_per_employee):,}/month",
+        },
         "benchmark_messages": [
             f"Target Hours: {target_hours} hrs/month",
             f"Utilisation Benchmark: {utilisation_benchmark}%",
             f"Absenteeism Benchmark: {absenteeism_benchmark} days/employee/month",
             f"Overtime Dependency Benchmark: {overtime_benchmark}%",
         ],
-        "straight_talk": f"These hidden gaps are costing up to AUD ${round(absenteeism_cost + underutilisation_cost):,} per month in missed productivity."
+        "straight_talk": (
+            f"These hidden gaps are costing up to AUD ${round(absenteeism_cost + underutilisation_cost):,} "
+            f"per month in missed productivity."
+        ),
     }
 
 # === 9. EXPORT FOR ADMIN PANEL ===
