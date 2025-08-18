@@ -7,4 +7,4 @@ pandas==2.2.3         # Only keep if benchmark loading uses it
 PyYAML==6.0.2         # Only keep if you're using visibility_settings.json
 python-dateutil==2.9.0.post0
 requests
-resend
+httpx
