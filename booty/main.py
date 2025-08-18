@@ -28,7 +28,6 @@ app.add_middleware(
         "https://www.candooculture.com",
         "https://candooculture.com",
         "https://clarity.candooculture.com",
-        "https://candooculture.webflow.io",  # drop this if you no longer preview via Webflow
     ],
     allow_credentials=True,
     allow_methods=["POST", "GET", "OPTIONS"],
