@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Dict
 from admin import admin_router
 from calculator import (
     industry_benchmarks,
@@ -411,3 +411,31 @@ async def load_protected_module(request: Request):
     except Exception as e:
         print(f"💥 Error loading module HTML: {e}")
         raise HTTPException(status_code=500, detail="Failed to load module HTML")
+
+# ====== Order form endpoint (Phase 1 – plumbing only) ======
+from pydantic import BaseModel
+from fastapi import HTTPException
+from typing import Optional, Dict
+
+class OrderPayload(BaseModel):
+    form: Dict
+    signature_png: str
+    pdf_base64: str
+    pdf_sha256_b64: str
+    user_agent: Optional[str] = None
+    tz: Optional[str] = None
+
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+@app.post("/api/order-sign")
+async def order_sign(payload: OrderPayload):
+    # Minimal server-side checks (hash + email come next phase)
+    f = payload.form or {}
+    required = ["company","abn","name","title","email","phone","initial_users","start_date"]
+    for k in required:
+        if not str(f.get(k, "")).strip():
+            raise HTTPException(status_code=422, detail=f"Missing field: {k}")
+    return {"ok": True}
+# ============================================================
