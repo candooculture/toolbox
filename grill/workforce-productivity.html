@@ -173,9 +173,9 @@
             out += `📜 Annual Revenue per Employee: ${r.revenue_per_employee}\n`;
             out += `💪 Payroll Efficiency: ${r.payroll_efficiency}\n\t(Each $1 spent on payroll generates ${(parseFloat(r.payroll_efficiency) / 100).toFixed(2)} in revenue)\n\n`;
             out += `🎗️ Utilisation Rate: ${r.utilisation_rate} of target hours used\n`;
-            out += `🛌 Absenteeism Rate: ${r.absenteeism_rate} of total monthly workdays\n\t⚠️ Confirm: days lost is total across entire workforce\n`;
+            out += `🛌 Absenteeism Rate: ${r.absenteeism_rate} of total monthly workdays (assumes ~20 workdays/month)\n\t⚠️ Confirm: days lost is total across entire workforce\n`;
             out += `🔥 Overtime Rate: ${r.overtime_rate} of productive hours\n\n`;
-            out += `🚀 Opportunity Gain (from 5% Utilisation Uplift): ${r.opportunity_gain}\n\tAssumes additional 5% of target hours at current revenue/hour`;
+            out += `🚀 Opportunity Gain (annual, from 5% Utilisation Uplift): ${r.opportunity_gain}\n\tAssumes additional 5% of target hours at current revenue/hour`;
 
             resultBox.innerText = out;
             resultBox.style.display = "block";
