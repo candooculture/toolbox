@@ -51,17 +51,18 @@ def calculate_efficiency_loss_and_roi(data):
     monthly_roi = return_per_dollar * 100
 
     return {
-        "formatted_labels": {"Employee Churn Cost": f"AUD ${round(churn_loss):,}",
-                             "Payroll Inefficiency Cost": f"AUD ${round(inefficiency_loss):,}",
-                             "Total Monthly Loss": f"AUD ${round(total_loss):,}",
-                             "Improved Inefficiency Cost": f"AUD ${round(improved_cost):,}",
-                             "Direct Savings from Initiative": f"AUD ${round(savings):,}",
-                             "Monthly ROI": f"{round(monthly_roi, 1)}%",
-                             "Return Per Dollar": f"${round(return_per_dollar, 2)}",
-                             "Payback Period": f"{payback_days} days"
-                             },
-        "benchmark_messages": compare_to_benchmark(data.industry, data.improvement_rate)
-    }
+    "formatted_labels": {
+        "Employee Churn Cost": f"AUD ${round(churn_loss):,}",
+        "Payroll Inefficiency Cost": f"AUD ${round(inefficiency_loss):,}",
+        "Total Monthly Loss": f"AUD ${round(total_loss):,}",
+        "Improved Inefficiency Cost": f"AUD ${round(improved_cost):,}",
+        "Direct Savings from Initiative": f"AUD ${round(savings):,}",
+        "Monthly ROI": f"{round(monthly_roi, 1)}%",
+        "Return Per Dollar": f"${round(return_per_dollar, 2)}",
+        "Payback Period": f"{payback_days} {day_label}",
+    },
+    "benchmark_messages": compare_to_benchmark(data.industry, data.improvement_rate),
+}
 
 # === 5. CUSTOMER CHURN ===
 
