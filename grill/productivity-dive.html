@@ -23,7 +23,8 @@
 <option value="Government / Public Sector">Government / Public Sector</option>
 <option value="Healthcare">Healthcare</option>
 <option value="Hospitality">Hospitality</option>
-<option value="Integrated Services">Integrated Services</option>
+<option value="Integrated Services">
+Integrated Services</option>
 <option value="Logistics &amp; Transport">Logistics &amp; Transport</option>
 <option value="Manufacturing">Manufacturing</option>
 <option value="Media / Creative / Comms">Media / Creative / Comms</option>
@@ -49,13 +50,13 @@
 <button type="submit">Calculate</button>
 </form>
 <p class="benchmark-note">
-    The following results reflect potential performance insights, based on typical industry benchmarks and Candoo’s proprietary logic.
+    The following results reflect potential performance insights...d on typical industry benchmarks and Candoo’s proprietary logic.
   </p>
 <pre id="dive-result"></pre>
 <div class="cta" id="cta-bottom">
 <h3>🌟 Discover where your team’s time is slipping — and what it’s costing you.</h3>
 <button onclick="window.location.href='https://calendly.com/candoo-culture/strategy'">📞 Book a Strategy Call</button>
-<button onclick="window.location.href='mailto:team@candooculture.com'">📧 Prefer Email? Let’s Help You Understand What to Do Next</button>
+<button onclick="window.location.href='mailto:team@candooculture...Prefer Email? Let’s Help You Understand What to Do Next</button>
 </div>
 <script src="clarity-core.js"></script>
 <script>
@@ -85,18 +86,20 @@
           label.style.display = "none";
         });
       }
-
       clearOnEdit(hoursInput, labelHours);
       clearOnEdit(absentInput, labelAbsent);
 
       async function fetchBenchmarks(industry) {
         try {
-          const res = await fetch(`${API_BASE}/get-industry-benchmarks?industry=${encodeURIComponent(industry)}`);
+          const res = await fetch(
+            `${API_BASE}/get-industry-benchmarks?industry=${encodeURIComponent(industry)}`
+          );
+          if (!res.ok) throw new Error("HTTP " + res.status);
           const data = await res.json();
           if (data.target_hours_per_employee != null) markPrefilled(hoursInput, labelHours, data.target_hours_per_employee);
           if (data.absenteeism_days != null) markPrefilled(absentInput, labelAbsent, data.absenteeism_days);
         } catch (err) {
-          console.error(`[${MODULE}] Benchmark fetch error:`, err);
+          console.error("[" + MODULE + "] Benchmark fetch error:", err);
         }
       }
 
@@ -127,21 +130,15 @@
         fetchBenchmarks(saved);
       }
 
-      let lastIndustry = saved || "";
-      setInterval(() => {
-        const current = localStorage.getItem("industry");
-        if (current && current !== lastIndustry) {
-          lastIndustry = current;
-          industrySelect.value = current;
-          fetchBenchmarks(current);
-        }
-      }, 1000);
-
-      form.addEventListener("submit", async e => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        resultBox.style.display = "none";
+        cta.style.display = "none";
+
         const data = Object.fromEntries(new FormData(form).entries());
         Object.keys(data).forEach(k => { if (!isNaN(data[k])) data[k] = Number(data[k]); });
         data.last_updated = Date.now();
+
         localStorage.setItem(`${MODULE}-inputs`, JSON.stringify(data));
         window.dispatchEvent(new Event("storage"));
         window.dispatchEvent(new CustomEvent("module-status-updated"));
@@ -156,41 +153,51 @@
           const result = await res.json();
 
           if (result.formatted_labels) {
-  const r = result.formatted_labels;
+            const r = result.formatted_labels || {};
 
-  // 1) Label this as a benchmark number so it doesn’t look invented
-  let outPerEmp = r["Output per Employee"];
-  if (outPerEmp && !/\(benchmark\)/i.test(outPerEmp)) {
-    outPerEmp = `${outPerEmp} (benchmark)`;
-  }
+            // (1) Tag Output per Employee as a benchmark figure
+            var outPerEmp = r["Output per Employee"] || "";
+            if (outPerEmp && outPerEmp.toLowerCase().indexOf("(benchmark)") === -1) {
+              outPerEmp = outPerEmp + " (benchmark)";
+            }
 
-  // 2) Fix absenteeism wording coming from backend messages (copy-only)
-  const msgs = (result.benchmark_messages || []).map(msg =>
-    msg.replace(/5\s*days\/employee\/month/i, "5 days per month (total across workforce)")
-  );
+            // (2) Fix absenteeism copy in benchmark messages (copy-only + safe)
+            var msgs = Array.isArray(result.benchmark_messages) ? result.benchmark_messages.slice() : [];
+            msgs = msgs.map(function (msg) {
+              return String(msg).replace(/5\s*days\/employee\/month/i, "5 days per month (total across workforce)");
+            });
 
-  // Harden industry label to avoid 'undefined'
-  const uiIndustry =
-    (document.querySelector('#industry')?.selectedOptions?.[0]?.textContent || '').trim() ||
-    data.industry || localStorage.getItem('industry') || 'Industry average';
+            // (3) Never show 'undefined' industry labels
+            var sel = document.querySelector('#industry');
+            var uiIndustry =
+              (sel && sel.selectedOptions && sel.selectedOptions[0] ? sel.selectedOptions[0].textContent.trim() : "") ||
+              (data.industry || localStorage.getItem("industry") || "Industry average");
 
-  let output = `💰 Absenteeism Cost: ${r["Absenteeism Cost"]}\n`;
-  output += `🔧 Utilisation Gap: ${r["Utilisation Gap"]}\n`;
-  output += `📉 Output Loss: ${r["Output Loss from Under-utilisation"]}\n`;
-  output += `📊 Output per Employee: ${outPerEmp}\n\n`;
+            // (4) Build output without template strings to avoid parser edge-cases
+            var lines = [];
+            lines.push("💰 Absenteeism Cost: " + (r["Absenteeism Cost"] || ""));
+            lines.push("🔧 Utilisation Gap: " + (r["Utilisation Gap"] || ""));
+            lines.push("📉 Output Loss: " + (r["Output Loss from Under-utilisation"] || ""));
+            lines.push("📊 Output per Employee: " + outPerEmp);
+            lines.push("");
+            lines.push("📊 Benchmark Check — " + uiIndustry + " Industry");
+            msgs.forEach(function (m) { lines.push("- " + m); });
+            lines.push("");
+            lines.push("🧠 Straight Talk");
+            lines.push(String(result.straight_talk || ""));
 
-  output += `📊 Benchmark Check — ${uiIndustry} Industry\n`;
-  msgs.forEach(msg => output += `- ${msg}\n`);
-
-  output += `\n🧠 Straight Talk\n${result.straight_talk}`;
-
-  resultBox.innerText = output;
-  resultBox.style.display = "block";
-  cta.style.display = "block";
-} else {
-  resultBox.innerText = "Something went wrong.";
-  resultBox.style.display = "block";
-}
+            resultBox.innerText = lines.join("\n");
+            resultBox.style.display = "block";
+            cta.style.display = "block";
+          } else {
+            resultBox.innerText = "Something went wrong.";
+            resultBox.style.display = "block";
+          }
+        } catch (err) {
+          console.error(`[${MODULE}] API error`, err);
+          resultBox.innerText = "API error. Try again.";
+          resultBox.style.display = "block";
+        }
       });
     })();
   </script>
