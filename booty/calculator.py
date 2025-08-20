@@ -73,24 +73,46 @@ def calculate_customer_churn_loss(data):
         print("INDUSTRY LOOKUP FAILED:", data.industry)
         raise e
 
-    churn_rate = data.churn_rate / 100
-    improved_rate = churn_rate * (1 - data.desired_improvement / 100)
+    churn_rate = data.churn_rate / 100.0
+    # Treat improvement as absolute percentage points (clamped to 0..current rate)
+    improvement_pts = max(0.0, min(float(data.desired_improvement), float(data.churn_rate))) / 100.0
+    improved_rate = max(0.0, churn_rate - improvement_pts)
 
+    # Baseline losses
     revenue_loss = data.num_customers * churn_rate * data.avg_revenue
     replacement_cost = data.num_customers * churn_rate * data.cac
-    potential_gain = data.num_customers * \
-        (churn_rate - improved_rate) * data.avg_revenue
 
-    recovery_percent = (potential_gain / (revenue_loss + replacement_cost)
-                        ) * 100 if (revenue_loss + replacement_cost) else 0
+    # Revenue recovered from absolute-point reduction
+    potential_gain = data.num_customers * improvement_pts * data.avg_revenue
+    # NEW: CAC avoided from saved customers
+    cac_avoided = data.num_customers * improvement_pts * data.cac
+    total_gain = potential_gain + cac_avoided
+
+    denom = (revenue_loss + replacement_cost)
+    # Keep existing revenue-only recovery (backward compatible)
+    recovery_percent = (potential_gain / denom) * 100 if denom else 0.0
+    # NEW: recovery including CAC avoided
+    recovery_percent_total = (total_gain / denom) * 100 if denom else 0.0
 
     return {
         "revenue_loss": round(float(revenue_loss)),
         "replacement_cost": round(float(replacement_cost)),
         "potential_gain": round(float(potential_gain)),
         "recovery_percent": round(float(recovery_percent), 1),
+
+        # NEW fields (additive, non-breaking)
+        "cac_avoided": round(float(cac_avoided)),
+        "total_gain": round(float(total_gain)),
+        "recovery_percent_total": round(float(recovery_percent_total), 1),
+
+        # Benchmarks + friendly message
         "benchmark_churn_rate": round(float(b.get("Customer Churn Rate (%) (Value)", 0)), 1),
-        "user_churn_rate": round(float(data.churn_rate), 1)
+        "user_churn_rate": round(float(data.churn_rate), 1),
+        "benchmark_message": (
+            f"Typical churn in {data.industry}: "
+            f"{round(float(b.get('Customer Churn Rate (%) (Value)', 0)), 1)}%. "
+            f"Your input: {round(float(data.churn_rate), 1)}%."
+        ),
     }
 
 # === 6. LEADERSHIP DRAG ===
