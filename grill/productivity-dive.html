@@ -156,27 +156,41 @@
           const result = await res.json();
 
           if (result.formatted_labels) {
-            const r = result.formatted_labels;
-            let output = `💰 Absenteeism Cost: ${r["Absenteeism Cost"]}\n`;
-            output += `🔧 Utilisation Gap: ${r["Utilisation Gap"]}\n`;
-            output += `📉 Output Loss: ${r["Output Loss from Under-utilisation"]}\n`;
-            output += `📊 Output per Employee: ${r["Output per Employee"]}\n\n`;
-            output += `📊 Benchmark Check — ${data.industry} Industry\n`;
-            result.benchmark_messages.forEach(msg => output += `- ${msg}\n`);
-            output += `\n🧠 Straight Talk\n${result.straight_talk}`;
+  const r = result.formatted_labels;
 
-            resultBox.innerText = output;
-            resultBox.style.display = "block";
-            cta.style.display = "block";
-          } else {
-            resultBox.innerText = "Something went wrong.";
-            resultBox.style.display = "block";
-          }
-        } catch (err) {
-          console.error(`[${MODULE}] API error`, err);
-          resultBox.innerText = "API error. Try again.";
-          resultBox.style.display = "block";
-        }
+  // 1) Label this as a benchmark number so it doesn’t look invented
+  let outPerEmp = r["Output per Employee"];
+  if (outPerEmp && !/\(benchmark\)/i.test(outPerEmp)) {
+    outPerEmp = `${outPerEmp} (benchmark)`;
+  }
+
+  // 2) Fix absenteeism wording coming from backend messages (copy-only)
+  const msgs = (result.benchmark_messages || []).map(msg =>
+    msg.replace(/5\s*days\/employee\/month/i, "5 days per month (total across workforce)")
+  );
+
+  // Harden industry label to avoid 'undefined'
+  const uiIndustry =
+    (document.querySelector('#industry')?.selectedOptions?.[0]?.textContent || '').trim() ||
+    data.industry || localStorage.getItem('industry') || 'Industry average';
+
+  let output = `💰 Absenteeism Cost: ${r["Absenteeism Cost"]}\n`;
+  output += `🔧 Utilisation Gap: ${r["Utilisation Gap"]}\n`;
+  output += `📉 Output Loss: ${r["Output Loss from Under-utilisation"]}\n`;
+  output += `📊 Output per Employee: ${outPerEmp}\n\n`;
+
+  output += `📊 Benchmark Check — ${uiIndustry} Industry\n`;
+  msgs.forEach(msg => output += `- ${msg}\n`);
+
+  output += `\n🧠 Straight Talk\n${result.straight_talk}`;
+
+  resultBox.innerText = output;
+  resultBox.style.display = "block";
+  cta.style.display = "block";
+} else {
+  resultBox.innerText = "Something went wrong.";
+  resultBox.style.display = "block";
+}
       });
     })();
   </script>
