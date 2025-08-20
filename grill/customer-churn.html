@@ -63,124 +63,140 @@
     </button>
 </div>
 <script>
-    (() => {
-      const MODULE = "customer-churn";
-      const API_BASE = "https://candoo-clarity.onrender.com";
+(() => {
+  const MODULE   = "customer-churn";
+  const API_BASE = "https://candoo-clarity.onrender.com";
 
-      const form = document.getElementById("churn-form");
-      const industrySelect = document.getElementById("industry");
-      const churnInput = document.getElementById("churn_rate");
-      const cacInput = document.getElementById("cac");
-      const labelChurn = document.getElementById("label-churn");
-      const labelCAC = document.getElementById("label-cac");
-      const resultBox = document.getElementById("churn-result");
-      const cta = document.getElementById("cta-bottom");
+  const form           = document.getElementById("churn-form");
+  const industrySelect = document.getElementById("industry");
+  const churnInput     = document.getElementById("churn_rate");
+  const cacInput       = document.getElementById("cac");
+  const labelChurn     = document.getElementById("label-churn");
+  const labelCAC       = document.getElementById("label-cac");
+  const resultBox      = document.getElementById("churn-result");
+  const cta            = document.getElementById("cta-bottom");
 
-      function markPrefilled(input, label, value) {
-        if (input.value.trim() === "") {
-          input.value = value;
-          input.classList.add("prefilled");
-          label.style.display = "block";
-        }
-      }
+  function markPrefilled(input, label, value) {
+    if (input.value.trim() === "") {
+      input.value = value;
+      input.classList.add("prefilled");
+      label.style.display = "inline";
+    }
+  }
+  function clearOnEdit(input, label) {
+    input.addEventListener("input", () => {
+      input.classList.remove("prefilled");
+      label.style.display = "none";
+    });
+  }
+  clearOnEdit(churnInput, labelChurn);
+  clearOnEdit(cacInput, labelCAC);
 
-      function clearOnEdit(input, label) {
-        input.addEventListener("input", () => {
-          input.classList.remove("prefilled");
-          label.style.display = "none";
-        });
-      }
+  async function fetchBenchmarks(industry) {
+    if (!industry) return;
+    try {
+      const res = await fetch(`${API_BASE}/get-industry-benchmarks?industry=${encodeURIComponent(industry)}`);
+      const data = await res.json();
+      if (data.churn_rate != null) markPrefilled(churnInput, labelChurn, data.churn_rate);
+      if (data.cac        != null) markPrefilled(cacInput,   labelCAC,   data.cac);
+    } catch (err) {
+      console.error(`[${MODULE}] benchmark fetch failed`, err);
+    }
+  }
 
-      clearOnEdit(churnInput, labelChurn);
-      clearOnEdit(cacInput, labelCAC);
+  industrySelect.addEventListener("change", (e) => {
+    const selected = e.target.value;
+    localStorage.setItem("industry", selected);
+    fetchBenchmarks(selected);
+  });
 
-      async function fetchBenchmarks(industry) {
-        if (!industry) return;
-        try {
-          const res = await fetch(`${API_BASE}/get-industry-benchmarks?industry=${encodeURIComponent(industry)}`);
-          const data = await res.json();
-          if (data.churn_rate != null) markPrefilled(churnInput, labelChurn, data.churn_rate);
-          if (data.cac != null) markPrefilled(cacInput, labelCAC, data.cac);
-        } catch (err) {
-          console.error(`[${MODULE}] Benchmark fetch failed`, err);
-        }
-      }
+  const savedIndustry = localStorage.getItem("industry");
+  if (savedIndustry) {
+    industrySelect.value = savedIndustry;
+    fetchBenchmarks(savedIndustry);
+  }
 
-      industrySelect.addEventListener("change", () => {
-        const selected = industrySelect.value;
-        localStorage.setItem("industry", selected);
-        fetchBenchmarks(selected);
+  function byId(id){ return document.getElementById(id); }
+  function coalesceNum(...vals){
+    for (const v of vals){
+      const n = Number(v);
+      if (!Number.isNaN(n) && Number.isFinite(n)) return n;
+    }
+    return 0;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    resultBox.style.display = "none";
+    cta.style.display = "none";
+
+    // Gather + coerce numeric fields
+    const data = Object.fromEntries(new FormData(form).entries());
+    Object.keys(data).forEach(k => { if (!isNaN(data[k])) data[k] = Number(data[k]); });
+    data.last_updated = Date.now();
+
+    // Persist inputs for ORS and cross-module reads
+    localStorage.setItem(`${MODULE}-inputs`, JSON.stringify(data));
+    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new CustomEvent("module-status-updated"));
+
+    try {
+      const response = await fetch(`${API_BASE}/run-churn-calculator`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
       });
+      const result = await response.json();
 
-      const saved = localStorage.getItem("industry");
-      if (saved) {
-        industrySelect.value = saved;
-        fetchBenchmarks(saved);
+      if (result && result.revenue_loss != null && result.replacement_cost != null) {
+        const totalLoss = (result.revenue_loss || 0) + (result.replacement_cost || 0);
+
+        // New backend fields with safe fallbacks
+        const recoveredRevenue = coalesceNum(result.recovered_revenue_abs, result.potential_gain, 0);
+        const cacAvoided       = coalesceNum(result.cac_avoided, 0);
+        const totalImpact      = coalesceNum(result.total_gain_abs, result.total_gain, recoveredRevenue + cacAvoided);
+        const recoveryPctTot   = coalesceNum(result.recovery_percent_total_abs, result.recovery_percent_total, result.recovery_percent, 0);
+
+        // Robust industry label fallback
+        const uiIndustry =
+          (document.querySelector('#industry')?.selectedOptions?.[0]?.textContent || '').trim()
+          || data.industry
+          || localStorage.getItem('industry')
+          || 'Industry average';
+
+        let output = `💸 Total Annual Loss from Customer Churn: AUD $${totalLoss.toLocaleString()}\n`;
+        output += ` • Lost Revenue from Churned Customers: AUD $${(result.revenue_loss||0).toLocaleString()}\n`;
+        output += ` • Replacement Cost (CAC): AUD $${(result.replacement_cost||0).toLocaleString()}\n\n`;
+
+        output += `✅ Based on Your Inputs\n`;
+        output += `🎯 Projected Annual Recovery (Revenue Only): AUD $${recoveredRevenue.toLocaleString()}\n`;
+        output += ` • CAC Avoided: AUD $${cacAvoided.toLocaleString()}\n`;
+        output += ` • Total Annual Impact (Revenue + CAC): AUD $${totalImpact.toLocaleString()}\n\n`;
+
+        output += `📈 Opportunity\n`;
+        output += `💰 Estimated Recovery (incl. CAC) = ${Number(recoveryPctTot).toFixed(1)}% of Total Churn Loss\n\n`;
+
+        output += `📊 Benchmark Check — ${uiIndustry} Industry\n`;
+        if (result.benchmark_message) output += `- ${result.benchmark_message}\n\n`;
+
+        output += `🧠 Straight Talk\n`;
+        output += `You're leaking AUD $${totalLoss.toLocaleString()} every year through churned customers and acquisition costs.\n`;
+        output += `Even a small improvement delivers AUD $${totalImpact.toLocaleString()} straight to your bottom line.`;
+
+        resultBox.innerText = output;
+        resultBox.style.display = "block";
+        cta.style.display = "block";
+      } else {
+        resultBox.innerText = "Something went wrong.";
+        resultBox.style.display = "block";
       }
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        resultBox.style.display = "none";
-        cta.style.display = "none";
-
-        const data = Object.fromEntries(new FormData(form).entries());
-        Object.keys(data).forEach(k => { if (!isNaN(data[k])) data[k] = Number(data[k]); });
-        data.last_updated = Date.now();
-        localStorage.setItem(`${MODULE}-inputs`, JSON.stringify(data));
-        window.dispatchEvent(new Event("storage"));
-        window.dispatchEvent(new CustomEvent("module-status-updated"));
-
-        try {
-          const response = await fetch(`${API_BASE}/run-churn-calculator`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-          });
-
-          const result = await response.json();
-
-          if (result.revenue_loss != null) {
-            const totalLoss = result.revenue_loss + result.replacement_cost;
-            const recoveryOpportunity = (result.potential_gain / totalLoss) * 100;
-
-            let output = `💸 Total Annual Loss from Customer Churn: AUD $${totalLoss.toLocaleString()}
-`;
-            output += ` • Lost Revenue from Churned Customers: AUD $${result.revenue_loss.toLocaleString()}
-`;
-            output += ` • Replacement Cost (CAC): AUD $${result.replacement_cost.toLocaleString()}
-\n`;
-            output += `✅ Based on Your Inputs
-`;
-            output += `🎯 Projected Annual Recovery from ${data.desired_improvement}% Reduction in Churn Rate: AUD $${result.potential_gain.toLocaleString()}
-\n`;
-            output += `📈 Opportunity
-`;
-            output += `💰 Estimated Recovery = ${recoveryOpportunity.toFixed(1)}% of Total Churn Loss (via ${data.desired_improvement}% churn reduction)
-\n`;
-            output += `📊 Benchmark Check — ${data.industry} Industry
-`;
-            output += `- ${result.benchmark_message}
-\n`;
-            output += `🧠 Straight Talk
-`;
-            output += `You're leaking AUD $${totalLoss.toLocaleString()} every year through churned customers and acquisition costs.
-`;
-            output += `Even a small improvement delivers AUD $${result.potential_gain.toLocaleString()} straight to your bottom line.`;
-
-            resultBox.innerText = output;
-            resultBox.style.display = "block";
-            cta.style.display = "block";
-          } else {
-            resultBox.innerText = "Something went wrong.";
-            resultBox.style.display = "block";
-          }
-        } catch (err) {
-          console.error(`[${MODULE}] API error`, err);
-          resultBox.innerText = "API error. Try again.";
-          resultBox.style.display = "block";
-        }
-      });
-    })();
-  </script>
+    } catch (err) {
+      console.error(`[${MODULE}] API error`, err);
+      resultBox.innerText = "API error. Try again.";
+      resultBox.style.display = "block";
+    }
+  });
+})();
+</script>
 </body>
 </html>
