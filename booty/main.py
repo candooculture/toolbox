@@ -146,160 +146,172 @@ def render_report_html(data):
     <!DOCTYPE html>
     <html>
     <head>
-      <meta charset="UTF-8">
-      <title>ORS Report</title>
-      <style>
-        body {{
-          font-family: Arial, sans-serif;
-          background-color: #ffffff;
-          color: #333333;
-          max-width: 640px;
-          margin: 0 auto;
-          padding: 30px 20px;
-          line-height: 1.6;
-        }}
-        h2 {{
-          text-align: center;
-          color: #111111;
-          font-size: 24px;
-          margin-bottom: 10px;
-        }}
-        h3 {{
-          font-size: 20px;
-          border-bottom: 1px solid #ddd;
-          padding-bottom: 6px;
-          margin-top: 30px;
-          color: #000;
-        }}
-        h4 {{
-          font-size: 16px;
-          color: #555;
-          margin-top: 24px;
-          margin-bottom: 6px;
-        }}
-        ul {{
-          list-style: none;
-          padding-left: 0;
-          margin-top: 0;
-        }}
-        li {{
-          padding: 4px 0;
-          border-bottom: 1px solid #eee;
-        }}
-        li:last-child {{
-          border-bottom: none;
-        }}
-        p, li {{
-          font-size: 14px;
-        }}
-        em {{
-          font-style: italic;
-          color: #777;
-        }}
-        .footer-note {{
-          margin-top: 30px;
-          font-size: 13px;
-          color: #777;
-          text-align: center;
-        }}
-        .cta {{
-          text-align: center;
-          background: #f7f7f7;
-          padding: 16px;
-          margin: 20px 0;
-          border: 1px solid #e1e1e1;
-          border-radius: 6px;
-        }}
-        .cta a {{
-          color: #0066cc;
-          text-decoration: none;
-          font-weight: bold;
-        }}
-      </style>
-    </head>
-    <body>
-      <!-- LOGO -->
-      <div style="text-align: center; margin-bottom: 20px;">
-        <img src="https://cdn.prod.website-files.com/6837cb68fba35c01d42b2008/683bf2a9cdebe0a37abc749f_icons%20website-p-500.png"
-             alt="Candoo Culture" width="140" style="max-width: 100%; height: auto;" />
-      </div>
+    <meta charset="UTF-8">
+    <title>ORS Report</title>
+    <!-- Montserrat webfont -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      body {{
+        font-family: "Montserrat", Arial, Helvetica, sans-serif;
+        background-color: #ffffff;
+        color: #333333;
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }}
+      h2 {{
+        text-align: center;
+        color: #111111;
+        font-size: 24px;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }}
+      h3 {{
+        font-size: 20px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 6px;
+        margin-top: 30px;
+        color: #000;
+        font-weight: 600;
+      }}
+      h4 {{
+        font-size: 16px;
+        color: #555;
+        margin-top: 24px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }}
+      ul {{
+        list-style: none;
+        padding-left: 0;
+        margin-top: 0;
+      }}
+      li {{
+        padding: 4px 0;
+        border-bottom: 1px solid #eee;
+      }}
+      li:last-child {{
+        border-bottom: none;
+      }}
+      p, li {{
+        font-size: 14px;
+        font-weight: 400;
+      }}
+      em {{
+        font-style: italic;
+        color: #777;
+      }}
+      .small-note {{
+        font-size: 12px;
+        color: #666;
+        margin-top: 6px;
+      }}
+      .footer-note {{
+        margin-top: 30px;
+        font-size: 13px;
+        color: #777;
+        text-align: center;
+      }}
+      .cta {{
+        text-align: center;
+        background: #f7f7f7;
+        padding: 16px;
+        margin: 20px 0;
+        border: 1px solid #e1e1e1;
+        border-radius: 6px;
+      }}
+      .cta a {{
+        color: #0066cc;
+        text-decoration: none;
+        font-weight: bold;
+      }}
+    </style>
+  </head>
+  <body>
+    <!-- LOGO -->
+    <div style="text-align: center; margin-bottom: 20px;">
+      <img src="https://cdn.prod.website-files.com/6837cb68fba35c01d42b2008/683bf2a9cdebe0a37abc749f_icons%20website-p-500.png"
+           alt="Candoo Culture" width="140" style="max-width: 100%; height: auto;" />
+    </div>
 
-      <!-- TOP CTA -->
-      <div class="cta">
-        <p>Ready to take action? <a href="mailto:aaron@candooculture.com" target="_blank">Book a 15-minute strategy call</a> to unpack your results.</p>
-      </div>
+    <!-- SINGLE CTA -->
+    <div class="cta">
+      <p>Ready to take action? <a href="mailto:aaron@candooculture.com" target="_blank" rel="noopener">Book a 15-minute strategy call</a> to unpack your results.</p>
+    </div>
 
-      <!-- TITLE -->
-      <h2>📊 Operational Risk Summary</h2>
-      <p style="text-align: center; color: #666;">Snapshot of your financial risk due to operational inefficiencies.</p>
-      <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;" />
+    <!-- TITLE -->
+    <h2>📊 Operational Risk Summary</h2>
+    <p style="text-align: center; color: #666;">Snapshot of your financial risk due to operational inefficiencies.</p>
+    <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;" />
 
-      <!-- EBITDA -->
-      <h3>🔥 EBITDA at Risk</h3>
-      <ul>
-        <li><strong>Total Risk Impact:</strong> {format_dollars(data.get("total_risk_dollars"))}</li>
-        <li><strong>Estimated EBITDA Margin:</strong> {data.get("ebitda_margin", "N/A")}%</li>
-        <li><strong>EBITDA at Risk:</strong> {data.get("ebitda_risk_pct", "N/A")}%</li>
-      </ul>
+    <!-- EBITDA -->
+    <h3>🔥 EBITDA at Risk</h3>
+    <ul>
+      <li><strong>Total Risk Impact:</strong> {format_dollars(data.get("total_risk_dollars"))}</li>
+      <li><strong>Estimated EBITDA Margin:</strong> {data.get("ebitda_margin", "N/A")}%</li>
+      <li><strong>EBITDA at Risk:</strong> {data.get("ebitda_risk_pct", "N/A")}%</li>
+    </ul>
+    <p class="small-note"><em>If EBITDA at Risk &gt; 100%, the at-risk total exceeds current EBITDA.</em></p>
 
-      <!-- MODULE BREAKDOWN -->
-      <h3>📋 Risk Breakdown</h3>
-      <ul>
-        <li><strong>Payroll Waste:</strong> {format_dollars(data.get("module_breakdown", {}).get("Payroll Waste"))}</li>
-        <li><strong>Customer Churn:</strong> {format_dollars(data.get("module_breakdown", {}).get("Customer Churn"))}</li>
-        <li><strong>Leadership Drag:</strong> {format_dollars(data.get("module_breakdown", {}).get("Leadership Drag"))}</li>
-        <li><strong>Workforce Productivity:</strong> {format_dollars(data.get("module_breakdown", {}).get("Workforce Productivity"))}</li>
-        <li><strong>Productivity (Deep Dive):</strong> {format_dollars(data.get("module_breakdown", {}).get("Productivity (Deep Dive)"))}</li>
-      </ul>
+    <!-- MODULE BREAKDOWN -->
+    <h3>📋 Risk Breakdown</h3>
+    <ul>
+      <li><strong>Payroll Waste:</strong> {format_dollars(data.get("module_breakdown", {}).get("Payroll Waste"))}</li>
+      <li><strong>Customer Churn:</strong> {format_dollars(data.get("module_breakdown", {}).get("Customer Churn"))}</li>
+      <li><strong>Leadership Drag:</strong> {format_dollars(data.get("module_breakdown", {}).get("Leadership Drag"))}</li>
+      <li><strong>Workforce Productivity:</strong> {format_dollars(data.get("module_breakdown", {}).get("Workforce Productivity"))}</li>
+      <li><strong>Productivity (Deep Dive):</strong> {format_dollars(data.get("module_breakdown", {}).get("Productivity (Deep Dive)"))}</li>
+    </ul>
 
-      <!-- INPUTS SUMMARY -->
-      <h3>🧠 Inputs Summary</h3>
-      <p><em>Please note: This is a direct summary of the inputs used in your calculation. Some values may reflect benchmark data based on your selected industry.</em></p>
+    <!-- INPUTS SUMMARY -->
+    <h3>🧠 Inputs Summary</h3>
+    <p><em>This is a direct summary of the inputs used. Some values may reflect industry benchmarks.</em></p>
 
-      <h4>Business Context</h4>
-      <ul>
-        <li><strong>Industry:</strong> {data.get("industry", "N/A")}</li>
-        <li><strong>Total Employees:</strong> {data.get("total_employees", "N/A")}</li>
-        <li><strong>Average Salary:</strong> {format_dollars(data.get("avg_salary"))}</li>
-        <li><strong>Total Revenue:</strong> {format_dollars(data.get("total_revenue"))}</li>
-      </ul>
+    <h4>Business Context</h4>
+    <ul>
+      <li><strong>Industry:</strong> {data.get("industry", "N/A")}</li>
+      <li><strong>Total Employees:</strong> {data.get("total_employees", "N/A")}</li>
+      <li><strong>Average Salary:</strong> {format_dollars(data.get("avg_salary"))}</li>
+      <li><strong>Total Revenue:</strong> {format_dollars(data.get("total_revenue"))}</li>
+    </ul>
 
-      <h4>Customer Economics</h4>
-      <ul>
-        <li><strong>Number of Customers:</strong> {data.get("num_customers", "N/A")}</li>
-        <li><strong>Average Revenue per Customer:</strong> {format_dollars(data.get("avg_revenue"))}</li>
-        <li><strong>CAC:</strong> {format_dollars(data.get("cac"))}</li>
-        <li><strong>Churn Rate:</strong> {data.get("churn_rate", "N/A")}%</li>
-        <li><strong>Desired Improvement:</strong> {data.get("desired_improvement", "N/A")}%</li>
-      </ul>
+    <h4>Customer Economics</h4>
+    <ul>
+      <li><strong>Number of Customers:</strong> {data.get("num_customers", "N/A")}</li>
+      <li><strong>Average Revenue per Customer:</strong> {format_dollars(data.get("avg_revenue"))}</li>
+      <li><strong>CAC:</strong> {format_dollars(data.get("cac"))}</li>
+      <li><strong>Churn Rate:</strong> {data.get("churn_rate", "N/A")}%</li>
+      <li><strong>Desired Improvement:</strong> {data.get("desired_improvement", "N/A")}%</li>
+    </ul>
 
-      <h4>Workforce & Operations</h4>
-      <ul>
-        <li><strong>Leadership Drag:</strong> {data.get("leadership_drag", "N/A")}%</li>
-        <li><strong>Productive Hours:</strong> {data.get("productive_hours", "N/A")}</li>
-        <li><strong>Target Hours per Employee:</strong> {data.get("target_hours_per_employee", "N/A")}</li>
-        <li><strong>Average Weekly Hours:</strong> {data.get("avg_hours", "N/A")}</li>
-        <li><strong>Overtime Hours:</strong> {data.get("overtime_hours", "N/A")}</li>
-        <li><strong>Absenteeism Days:</strong> {data.get("absenteeism_days", "N/A")}</li>
-      </ul>
+    <h4>Workforce &amp; Operations</h4>
+    <ul>
+      <li><strong>Leadership Drag:</strong> {data.get("leadership_drag", "N/A")}%</li>
+      <li><strong>Productive Hours (org/month):</strong> {data.get("productive_hours", "N/A")}</li>
+      <li><strong>Target Hours per Employee (per month):</strong> {data.get("target_hours_per_employee", "N/A")}</li>
+      <li><strong>Average Weekly Hours (per employee):</strong> {data.get("avg_hours", "N/A")}</li>
+      <li><strong>Overtime Hours (org/month):</strong> {data.get("overtime_hours", "N/A")}</li>
+      <li><strong>Absenteeism Days (per employee/month):</strong> {data.get("absenteeism_days", "N/A")}</li>
+    </ul>
 
-      <h4>Calculated & Efficiency Factors</h4>
-      <ul>
-        <li><strong>Payroll Cost:</strong> {format_dollars(data.get("payroll_cost"))}</li>
-        <li><strong>Improvement Rate:</strong> {data.get("improvement_rate", "N/A")}%</li>
-      </ul>
+    <h4>Calculated &amp; Efficiency Factors</h4>
+    <ul>
+      <li><strong>Payroll Cost:</strong> {format_dollars(data.get("payroll_cost"))}</li>
+      <li><strong>Improvement Rate:</strong> {data.get("improvement_rate", "N/A")}%</li>
+    </ul>
 
-      <!-- BOTTOM CTA -->
-      <div class="cta">
-        <p>Want to dive deeper? <a href="tel:+61455460580" target="_blank">Call now</a> to chat with our team.</p>
-      </div>
-
-      <p class="footer-note">
-  Generated by the Candoo Culture ORS Engine<br>
-  <a href="https://www.candooculture.com" style="color: #0066cc; text-decoration: none;">www.candooculture.com</a>
-</p>
-    </body>
-    </html>
+    <p class="footer-note">
+      All amounts in AUD. Time-based metrics are monthly unless stated.<br>
+      Generated by the Candoo Culture ORS Engine<br>
+      <a href="https://www.candooculture.com" style="color: #0066cc; text-decoration: none;">www.candooculture.com</a>
+    </p>
+  </body>
+</html>
     """
 
 @app.post("/send-risk-report")
