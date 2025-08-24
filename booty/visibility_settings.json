@@ -22,5 +22,8 @@
     {
         "calculator": "operational_risk",
         "visible": true
-    }
+    },
+    {
+        "calculator": "profit_potential",
+        "visible": true }
 ]
