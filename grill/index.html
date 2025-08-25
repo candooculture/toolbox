@@ -111,6 +111,7 @@
       const { name } = calculators[key];
       const tab = document.createElement('div');
       tab.className = 'tab';
+      tab.setAttribute('data-key', key);
 
       const emailStored = localStorage.getItem("candoo-user-email");
       const isGated = gatedModules.includes(key);
