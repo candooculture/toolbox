@@ -63,7 +63,8 @@
 
   <div class="footer">
     <div class="linkbox">
-      <a href="admin.html" class="admin-link">admin</a>
+      <!-- LOCKED: route through protected loader, not a raw href -->
+      <a href="#" id="adminLink" class="admin-link">admin</a>
     </div>
   </div>
 
@@ -306,7 +307,9 @@
   function clearAllModuleResults(evt) {
     try { if (evt) evt.preventDefault(); } catch (_) {}
 
-    if (!confirm('This will wipe ALL saved answers and unlock state on this device.\n\nContinue?')) return false;
+    if (!confirm('This will wipe ALL saved answers and unlock state on this device.
+
+Continue?')) return false;
 
     try {
       // Hard nuke: clear all saved keys for this origin
@@ -335,6 +338,28 @@
     setTimeout(() => location.reload(), 150);
     return false;
   }
+</script>
+
+<!-- 🔒 Lock Admin behind the protected loader (same as Profit) -->
+<script>
+  (function lockAdmin(){
+    function openAdmin(e){
+      try { e?.preventDefault(); e?.stopPropagation?.(); } catch(_){}
+      // Use a throwaway element so switchTab can safely mark it active
+      const phantomTab = document.createElement('div');
+      phantomTab.className = 'tab';
+      switchTab('__admin__', phantomTab); // triggers password + /api/load-protected-module
+      return false;
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('adminLink')?.addEventListener('click', openAdmin);
+      // Intercept any stray direct links to admin.html
+      document.body.addEventListener('click', (ev) => {
+        const a = ev.target.closest('a[href$="admin.html"]');
+        if (a) { ev.preventDefault(); openAdmin(ev); }
+      }, true);
+    });
+  })();
 </script>
   
  <!-- 🔒 Styled Email Gate Modal with Close Button -->
