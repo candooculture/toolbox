@@ -25,20 +25,37 @@ from fastapi import Request, HTTPException  # (keep if already imported)
 @app.post("/unlock-user")
 async def unlock_user_email(request: Request):
     """
-    Accepts: {"email":"user@example.com"}
-    Purpose: Acknowledge unlock; frontend only needs HTTP 200.
+    Logs unlocks to Google Sheets and always returns 200 so the UI can proceed.
     """
     try:
         payload = await request.json()
         email = str(payload.get("email", "")).strip()
         if "@" not in email:
             raise HTTPException(status_code=400, detail="Invalid email")
-        print(f"🔓 Unlock email captured: {email}")
-        return {"ok": True}
+
+        # Sheets logging (same URL as before)
+        gs_url = "https://script.google.com/macros/s/AKfycbwbtb1kDD5fOJrtCVtfcVq2H5vdgrpYhw89zpnJryUEiuset9AUBWSkNRPTU_5So-t-/exec"
+        timestamp = pd.Timestamp.utcnow().isoformat() + "Z"
+
+        try:
+            r = requests.post(
+                gs_url,
+                data={"email": email, "timestamp": timestamp, "source": "module-unlock"},
+                timeout=10,
+            )
+            if not r.ok:
+                print(f"⚠️ Sheets logging failed: {r.status_code} {r.text[:160]}")
+        except Exception as e:
+            print(f"⚠️ Sheets logging error: {e}")
+
+        print(f"🔓 Unlock email captured: {email} @ {timestamp}")
+        return {"success": True}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Bad request: {e}")
+        # Don’t block the UX on logging issues
+        print(f"⚠️ /unlock-user error (non-fatal): {e}")
+        return {"success": True}
 
 # === CORS ===
 from fastapi.middleware.cors import CORSMiddleware  # (only if not already imported)
