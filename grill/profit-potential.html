@@ -258,7 +258,7 @@
     localStorage.setItem(id, el.value);
   }
 
-  // ---------- NEW: Step 3 snapshot preload (read-only) ----------
+  // ---------- snapshot preload ----------
   function readSnapshotFromLocal(){
     const keys = ["ors_last_snapshot","ors_snapshot"];
     for (const k of keys){
@@ -412,8 +412,8 @@
     recalc();
   }
 
-  // ---------- boot ----------
-  window.addEventListener("DOMContentLoaded", () => {
+  // ---------- INIT (works even when injected after DOMContentLoaded) ----------
+  function boot(){
     // 1) Try snapshot (if ORS page saved it)
     const snap = readSnapshotFromLocal();
     if (snap) applySnapshotToInputs(snap);
@@ -450,12 +450,19 @@
         if (!el) return;
         el.addEventListener(el.type==="checkbox"?"change":"input", recalc);
       });
-    document.getElementById("recalc").addEventListener("click", recalc);
-    document.getElementById("copyJSON").addEventListener("click", copyJSON);
-    document.getElementById("clear").addEventListener("click", clearPage);
+    document.getElementById("recalc")?.addEventListener("click", recalc);
+    document.getElementById("copyJSON")?.addEventListener("click", copyJSON);
+    document.getElementById("clear")?.addEventListener("click", clearPage);
 
     recalc();
-  });
+  }
+
+  // Run immediately if DOM is already loaded (modules are injected after DOMContentLoaded)
+  if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
 </script>
 </body>
 </html>
