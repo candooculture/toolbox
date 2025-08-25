@@ -361,10 +361,6 @@ async def send_risk_report(request: Request):
         # === CAPTCHA VALIDATION ===
         captcha_token = data.get("captcha_token")
         secret = os.getenv("RECAPTCHA_SECRET_KEY")
-
-        print("✅ CAPTCHA token received:", captcha_token)
-        print("🔐 CAPTCHA secret loaded:", "Yes" if secret else "❌ MISSING")
-
         if not captcha_token:
             raise HTTPException(status_code=400, detail="Missing CAPTCHA token")
         if not secret:
@@ -374,25 +370,33 @@ async def send_risk_report(request: Request):
             "https://www.google.com/recaptcha/api/siteverify",
             data={"secret": secret, "response": captcha_token}
         )
-        verify_result = verify_response.json()
-        if not verify_result.get("success"):
+        if not verify_response.json().get("success"):
             raise HTTPException(status_code=400, detail="CAPTCHA validation failed")
 
-        # ORS Calculation (merge into data for the email template)
+        # === ORS calculation ===
         try:
             ors_result = run_operational_risk(RiskInput(**data))
-            data.update(ors_result)
+            data.update(ors_result)  # adds total_risk_dollars, module_breakdown, etc.
         except Exception as calc_error:
             print("ORS calculation failed:", calc_error)
+            ors_result = {}
 
-        # ---- Build snapshot JSON (no side-effects; returned to client) ----
+        # ---------- Build snapshot (use ORS result as source of truth) ----------
         def _num(x):
             try:
-                if x is None or x == "": 
+                if x is None or x == "":
                     return None
                 return float(x)
-            except:
+            except Exception:
                 return None
+
+        breakdown = (data.get("module_breakdown") or ors_result.get("module_breakdown") or {})
+
+        def bdnum(label, fallback_key=None):
+            v = _num(breakdown.get(label))
+            if v is None and fallback_key:
+                v = _num(data.get(fallback_key))  # legacy fallback if ever sent
+            return v
 
         snapshot = {
             "report_id": str(uuid4()),
@@ -401,27 +405,27 @@ async def send_risk_report(request: Request):
             "version": "ors-snapshot-1",
             "currency": "AUD",
             "inputs": {
-                "revenue": _num(data.get("total_revenue")),
-                "cogs": _num(data.get("cogs")),
-                "opex": _num(data.get("opex")),
+                "revenue":   _num(data.get("total_revenue")),
+                "cogs":      _num(data.get("cogs")),
+                "opex":      _num(data.get("opex")),
                 "gross_now": _num(data.get("gross_now")),
-                "net_now": _num(data.get("net_now")),
+                "net_now":   _num(data.get("net_now")),
             },
             "savings": {
-                "payroll_savings": _num(data.get("payroll_savings")),
-                "churn_recovery": _num(data.get("churn_recovery")),
-                "workforce_gain": _num(data.get("workforce_gain")),
-                "deep_dive_gain": _num(data.get("deep_dive_gain")),
-                "leadership_reduction": _num(data.get("leadership_reduction")),
+                # map email “Risk Breakdown” labels -> Profit fields
+                "payroll_savings":      bdnum("Payroll Waste",            "payroll_savings"),
+                "churn_recovery":       bdnum("Customer Churn",           "churn_recovery"),
+                "workforce_gain":       bdnum("Workforce Productivity",   "workforce_gain"),
+                "deep_dive_gain":       bdnum("Productivity (Deep Dive)", "deep_dive_gain"),
+                "leadership_reduction": bdnum("Leadership Drag",          "leadership_reduction"),
             },
             "risk": {
-                # Use total_risk_dollars as the canonical ORS $ risk for now
-                "ors_ebitda_at_risk": _num(data.get("total_risk_dollars")),
+                "ors_ebitda_at_risk": _num(data.get("total_risk_dollars") or ors_result.get("total_risk_dollars")),
             },
         }
 
-        # Derived totals only if we have the inputs
-        fixes_vals = [v for v in (snapshot["savings"] or {}).values() if isinstance(v, (int, float))]
+        # Derived totals
+        fixes_vals = [v for v in snapshot["savings"].values() if isinstance(v, (int, float))]
         fixes_total = sum(fixes_vals) if fixes_vals else None
         net_now = snapshot["inputs"].get("net_now")
         ors_risk = snapshot["risk"].get("ors_ebitda_at_risk")
@@ -433,12 +437,12 @@ async def send_risk_report(request: Request):
             "fixes_total": fixes_total,
             "best_case_net": best_case_net
         }
+        # -----------------------------------------------------------------------
 
-        # ---- Mailgun Send (unchanged) ----
+        # ---- Mailgun send (unchanged) ----
         mg_api_key = os.getenv("MAILGUN_API_KEY")
         mg_domain = os.getenv("MAILGUN_DOMAIN")
         mg_sender = os.getenv("MAILGUN_SENDER")
-
         if not all([mg_api_key, mg_domain, mg_sender]):
             raise Exception("Missing Mailgun environment variables.")
 
@@ -453,11 +457,9 @@ async def send_risk_report(request: Request):
                 "html": render_report_html(data)
             }
         )
-
         if response.status_code != 200:
             raise Exception(f"Mailgun Error: {response.text}")
 
-        # Return existing success + the snapshot (safe additive change)
         return {"success": True, "message": "Report sent.", "snapshot": snapshot}
 
     except Exception as e:
