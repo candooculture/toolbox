@@ -303,36 +303,34 @@
 
   <script>
   function clearAllModuleResults() {
-    const confirmed = confirm('Are you sure you want to clear all module results? This cannot be undone.');
-    if (!confirmed) return;
+    if (!confirm('This will wipe ALL saved answers and unlock state on this device.\n\nContinue?')) return;
 
-    const keysToClear = [
-      'payroll-waste-inputs',
-      'customer-churn-inputs',
-      'leadership-drag-inputs',
-      'workforce-productivity-inputs',
-      'productivity-deep-dive-inputs',
-      'industry',
-      'candoo-user-email'
-    ];
-    keysToClear.forEach(key => localStorage.removeItem(key));
-
-    // Soft refresh: clear tabs and reload tab logic
-    const tabsDiv = document.getElementById('tabs');
-    const container = document.getElementById('contentContainer');
-
-    if (tabsDiv) tabsDiv.innerHTML = '';
-    if (container) container.innerHTML = '<p>Reset complete. Please select a module to begin again.</p>';
-
-    loadVisibility(); // re-trigger tab rendering without reload
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    const resetBtn = document.getElementById('resetAllBtn');
-    if (resetBtn) {
-      resetBtn.onclick = clearAllModuleResults;
+    try {
+      // Hard nuke: clear all saved keys for this origin
+      localStorage.clear();
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.clear();
+      }
+    } catch (e) {
+      console.warn("localStorage/sessionStorage clear failed, falling back:", e);
+      // Best-effort fallback: remove keys one-by-one
+      try {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const k = localStorage.key(i);
+          if (k) localStorage.removeItem(k);
+        }
+      } catch (_) {}
     }
-  });
+
+    // Remove any previously injected module scripts
+    document.querySelectorAll('script[data-injected]').forEach(s => s.remove());
+
+    // UI message then force a clean reload
+    const container = document.getElementById('contentContainer');
+    if (container) container.innerHTML = '<p>All results cleared. Reloading…</p>';
+
+    setTimeout(() => location.reload(), 150);
+  }
 </script>
   
  <!-- 🔒 Styled Email Gate Modal with Close Button -->
