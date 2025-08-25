@@ -6,67 +6,117 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="clarity-style.css">
   <style>
-    /* Profit Potential — fully scoped, dark, Montserrat */
-    .profit{
-      --maxw: 980px;
-      --pad: 16px;
-      --gap: 12px;
-      --radius: 12px;
-      font-family:'Montserrat', sans-serif;
-      color:#fff;
-    }
-    .profit .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 var(--pad); }
-    .profit h1,.profit h2,.profit h3{ margin:0 0 12px; }
-    .profit p{ margin:0 0 8px; opacity:.85; }
+  /* Profit Potential — fully scoped, dark, Montserrat (compact) */
+  .profit{
+    --maxw: 980px;
+    --pad: 12px;      /* was 16 */
+    --gap: 10px;      /* was 12 */
+    --radius: 10px;   /* was 12 */
+    font-family:'Montserrat', sans-serif;
+    color:#fff;
+  }
+  .profit .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 var(--pad); }
 
-    .profit .card{
-      background:rgba(15,15,15,.85);
-      border:1px solid #333;
-      border-radius:var(--radius);
-      padding:18px;
-      margin-bottom:16px;
-      box-shadow:0 1px 6px rgba(0,0,0,.5);
-    }
+  .profit h1,.profit h2,.profit h3{ margin:0 0 8px; }   /* was 12 */
+  .profit p{ margin:0 0 6px; opacity:.85; }             /* was 8 */
 
-    .profit .grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:var(--gap); }
-    .profit .col-6{ grid-column:span 6; }
-    .profit .col-4{ grid-column:span 4; }
-    .profit .col-3{ grid-column:span 3; }
-    .profit .col-12{ grid-column:span 12; }
-    @media (max-width:860px){
-      .profit .col-6, .profit .col-4, .profit .col-3, .profit .col-12{ grid-column:span 12; }
-    }
+  .profit .card{
+    background:rgba(15,15,15,.85);
+    border:1px solid #333;
+    border-radius:var(--radius);
+    padding:14px;               /* was 18 */
+    margin-bottom:12px;         /* was 16 */
+    box-shadow:0 1px 6px rgba(0,0,0,.5);
+  }
 
-    .profit label{ display:block; font-size:.95rem; margin-bottom:6px; color:#bbb; }
-    .profit input[type="number"], .profit input[type="text"], .profit input[type="email"]{
-      width:100%; box-sizing:border-box; padding:10px 12px;
-      background:#0f0f0f; border:1px solid #333; border-radius:8px; color:#fff; font-size:1rem;
-    }
-    .profit input[type="checkbox"]{ transform:translateY(2px); margin-right:8px; }
-    .profit .hint{ font-size:.85rem; opacity:.7; }
+  .profit .grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:var(--gap); }
+  .profit .col-6{ grid-column:span 6; }
+  .profit .col-4{ grid-column:span 4; }
+  .profit .col-3{ grid-column:span 3; }
+  .profit .col-12{ grid-column:span 12; }
+  @media (max-width:860px){
+    .profit .col-6, .profit .col-4, .profit .col-3, .profit .col-12{ grid-column:span 12; }
+  }
 
-    .profit .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
-    .profit button{
-      background:#13dcff; color:#000; font-weight:600;
-      padding:10px 14px; border:none; border-radius:10px; cursor:pointer;
-    }
-    .profit button.ghost{ background:transparent; border:1px solid #333; color:#fff; }
+  .profit label{
+    display:block;
+    font-size:.92rem;           /* was .95rem */
+    margin-bottom:4px;          /* was 6px */
+    color:#bfc7cc;              /* slightly lighter */
+  }
 
-    .profit table{ width:100%; border-collapse:collapse; margin-top:8px; border:1px solid #333; border-radius:var(--radius); overflow:hidden; background:#0b0b0b; color:#eee; }
-    .profit thead th{ text-align:left; font-weight:600; padding:12px; background:#0f0f0f; border-bottom:1px solid #333; }
-    .profit tbody td{ padding:12px; border-bottom:1px solid #222; text-align:right; font-variant-numeric:tabular-nums; }
-    .profit tbody td:first-child, .profit thead th:first-child{ text-align:left; }
-    .profit tfoot td{ font-weight:700; background:#101010; }
+  .profit input[type="number"],
+  .profit input[type="text"],
+  .profit input[type="email"]{
+    width:100%;
+    box-sizing:border-box;
+    padding:8px 10px;           /* was 10–12 */
+    height:44px;                /* consistent compact height */
+    background:#0f0f0f;
+    border:1px solid #333;
+    border-radius:8px;
+    color:#fff;
+    font-size:.95rem;           /* was 1rem */
+    line-height:1.2;
+  }
 
-    .profit .pos{ color:#13dcff; }
-    .profit .neg{ color:#ff6b6b; }
+  /* hide number spinners to save space */
+  .profit input[type="number"]::-webkit-outer-spin-button,
+  .profit input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .profit input[type="number"] { -moz-appearance: textfield; }
 
-    /* Hide duplicate module logo (index already shows brand) */
-    .profit .logo{ display:none; }
-  </style>
+  .profit input[type="checkbox"]{ transform:translateY(1px); margin-right:8px; }
+
+  .profit .hint{ font-size:.82rem; opacity:.72; }        /* was .85/.7 */
+
+  .profit .actions{
+    display:flex;
+    gap:8px;                     /* was 10 */
+    flex-wrap:wrap;
+    margin-top:6px;              /* was 8 */
+  }
+  .profit button{
+    background:#13dcff; color:#000; font-weight:600;
+    padding:9px 12px;            /* was 10x14 */
+    border:none; border-radius:9px; cursor:pointer;
+  }
+  .profit button.ghost{ background:transparent; border:1px solid #333; color:#fff; }
+
+  .profit table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:6px;              /* was 8 */
+    border:1px solid #333;
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:#0b0b0b;
+    color:#eee;
+  }
+  .profit thead th{
+    text-align:left;
+    font-weight:600;
+    padding:10px;                /* was 12 */
+    background:#0f0f0f;
+    border-bottom:1px solid #333;
+  }
+  .profit tbody td{
+    padding:10px;                /* was 12 */
+    border-bottom:1px solid #222;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .profit tbody td:first-child, .profit thead th:first-child{ text-align:left; }
+  .profit tfoot td{ font-weight:700; background:#101010; }
+
+  .profit .pos{ color:#13dcff; }
+  .profit .neg{ color:#ff6b6b; }
+
+  /* Hide duplicate module logo (index already shows brand) */
+  .profit .logo{ display:none; }
+</style>
 </head>
 <body>
-  <div class="profit">
+  <div class="profit dense">
     <div class="wrap">
       <div class="logo">
         <a href="https://candooculture.com/">
