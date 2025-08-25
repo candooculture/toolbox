@@ -20,6 +20,26 @@ import requests
 
 app = FastAPI()
 
+from fastapi import Request, HTTPException  # (keep if already imported)
+
+@app.post("/unlock-user")
+async def unlock_user_email(request: Request):
+    """
+    Accepts: {"email":"user@example.com"}
+    Purpose: Acknowledge unlock; frontend only needs HTTP 200.
+    """
+    try:
+        payload = await request.json()
+        email = str(payload.get("email", "")).strip()
+        if "@" not in email:
+            raise HTTPException(status_code=400, detail="Invalid email")
+        print(f"🔓 Unlock email captured: {email}")
+        return {"ok": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Bad request: {e}")
+
 # === CORS ===
 from fastapi.middleware.cors import CORSMiddleware  # (only if not already imported)
 
@@ -122,6 +142,7 @@ def get_industry_benchmarks(industry: str):
 def get_all_industries():
     df = pd.read_csv("benchmarks/final_cleaned_benchmarks_with_certainty.csv")
     return {"industries": sorted(df["Industry"].dropna().unique().tolist())}
+
 
 # === ORS Scoring Endpoint ===
 
