@@ -307,9 +307,7 @@
   function clearAllModuleResults(evt) {
     try { if (evt) evt.preventDefault(); } catch (_) {}
 
-    if (!confirm('This will wipe ALL saved answers and unlock state on this device.
-
-Continue?')) return false;
+    if (!confirm('This will wipe ALL saved answers and unlock state on this device.\n\nContinue?')) return false;
 
     try {
       // Hard nuke: clear all saved keys for this origin
