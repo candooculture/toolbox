@@ -16,55 +16,51 @@
   <p id="feedback"></p>
 
   <script>
+    // ----- reCAPTCHA -----
     function loadRecaptcha(callback) {
-      if (typeof grecaptcha !== "undefined") {
-        callback();
-      } else {
-        const interval = setInterval(() => {
-          if (typeof grecaptcha !== "undefined") {
-            clearInterval(interval);
-            callback();
-          }
-        }, 300);
-      }
+      if (typeof grecaptcha !== "undefined") { callback(); return; }
+      const interval = setInterval(() => {
+        if (typeof grecaptcha !== "undefined") { clearInterval(interval); callback(); }
+      }, 300);
     }
-
     function renderCaptcha() {
       loadRecaptcha(() => {
         const container = document.querySelector('.g-recaptcha');
         if (container && !container.hasAttribute('data-rendered')) {
-          grecaptcha.render(container, {
-            sitekey: container.getAttribute('data-sitekey')
-          });
+          grecaptcha.render(container, { sitekey: container.getAttribute('data-sitekey') });
           container.setAttribute('data-rendered', 'true');
         }
       });
     }
-
     window.renderCaptcha = renderCaptcha;
 
+    // ----- DOM -----
     const emailInput = document.getElementById("email");
     const feedback = document.getElementById("feedback");
     const btn = document.getElementById("generate-btn");
 
-    const read = (key) => {
-      try {
-        return JSON.parse(localStorage.getItem(key)) || {};
-      } catch {
-        return {};
-      }
-    };
+    // ----- helpers -----
+    const read = (key) => { try { return JSON.parse(localStorage.getItem(key)) || {}; } catch { return {}; } };
+    const set = (k, v) => { if (v != null && v !== "") localStorage.setItem(k, String(v)); };
 
+    // Prefill email if we have it
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedEmail = localStorage.getItem("candoo-user-email");
+      if (savedEmail) emailInput.value = savedEmail;
+    });
+
+    // ----- send report -----
     btn.addEventListener("click", async (e) => {
       e.preventDefault();
       const email = emailInput.value.trim();
-      if (!email) {
+
+      if (!email || !email.includes("@")) {
         feedback.textContent = "Please enter a valid email address.";
         feedback.style.color = "orange";
         return;
       }
 
-      const captchaResponse = grecaptcha.getResponse();
+      const captchaResponse = (typeof grecaptcha !== "undefined") ? grecaptcha.getResponse() : "";
       if (!captchaResponse) {
         feedback.textContent = "Please complete the CAPTCHA.";
         feedback.style.color = "orange";
@@ -72,11 +68,12 @@
         return;
       }
 
-      const payroll = read("payroll-waste-inputs");
-      const churn = read("customer-churn-inputs");
+      // pull inputs from other modules (as you already do)
+      const payroll    = read("payroll-waste-inputs");
+      const churn      = read("customer-churn-inputs");
       const leadership = read("leadership-drag-inputs");
-      const workforce = read("workforce-productivity-inputs");
-      const deep = read("productivity-deep-dive-inputs");
+      const workforce  = read("workforce-productivity-inputs");
+      const deep       = read("productivity-deep-dive-inputs");
 
       const payload = {
         captcha_token: captchaResponse,
@@ -108,31 +105,41 @@
           body: JSON.stringify(payload)
         });
 
-        const result = await response.json();
-        if (response.ok) {
-          feedback.textContent = "✅ Report sent successfully!";
-          feedback.style.color = "green";
-          emailInput.value = "";
-          grecaptcha.reset(); // Optional: reset captcha after success
-        } else {
-          throw new Error(result.detail || "Failed to send report.");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Failed to send report.");
+
+        // -------- NEW: save snapshot for Profit module --------
+        try {
+          if (data && data.snapshot) {
+            // full snapshot
+            localStorage.setItem("ors_last_snapshot", JSON.stringify(data.snapshot));
+
+            // simple keys Profit already understands (fallbacks)
+            const s = data.snapshot;
+            set("payroll-waste-savings",            s?.savings?.payroll_savings);
+            set("customer-churn-savings",           s?.savings?.churn_recovery);
+            set("workforce-productivity-savings",   s?.savings?.workforce_gain);
+            set("productivity-deep-dive-savings",   s?.savings?.deep_dive_gain);
+            set("leadership-drag-savings",          s?.savings?.leadership_reduction);
+            set("ors_ebitda_at_risk",               s?.risk?.ors_ebitda_at_risk);
+          }
+        } catch (snapErr) {
+          console.warn("Snapshot cache failed:", snapErr);
         }
+        // ------------------------------------------------------
+
+        // UX: success
+        feedback.textContent = "✅ Report sent successfully!";
+        feedback.style.color = "green";
+        // remember email for convenience
+        localStorage.setItem("candoo-user-email", email);
+        emailInput.value = "";
+        grecaptcha.reset();
       } catch (err) {
         feedback.textContent = `❌ ${err.message}`;
         feedback.style.color = "red";
       }
     });
   </script>
-  
-  <script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const savedEmail = localStorage.getItem("candoo-user-email");
-    const emailInput = document.getElementById("email");
-    if (savedEmail && emailInput) {
-      emailInput.value = savedEmail;
-    }
-  });
-</script>
-
 </body>
 </html>
