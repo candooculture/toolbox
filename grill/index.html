@@ -335,12 +335,6 @@
     setTimeout(() => location.reload(), 150);
     return false;
   }
-
-  // also wire it on DOMContentLoaded for redundancy
-  window.addEventListener('DOMContentLoaded', () => {
-    const resetBtn = document.getElementById('resetAllBtn');
-    if (resetBtn) resetBtn.addEventListener('click', clearAllModuleResults);
-  });
 </script>
   
  <!-- 🔒 Styled Email Gate Modal with Close Button -->
