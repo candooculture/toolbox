@@ -314,10 +314,10 @@ small,
 
 /* Highlight Profit tab */
 .tab[data-key="profit_potential"]{
-  border: 2px solid #ff4d4f !important;
+  border: 2px solid #ffe600 !important;
   box-shadow: 0 0 14px rgba(255,77,79,.35), inset 0 0 10px rgba(255,77,79,.25);
 }
 .tab[data-key="profit_potential"].active{
-  border-color: #ff7875 !important;
+  border-color: #37ff00 !important;
   box-shadow: 0 0 18px rgba(255,120,117,.45), inset 0 0 12px rgba(255,120,117,.35);
 }
