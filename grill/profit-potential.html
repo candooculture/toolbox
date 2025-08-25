@@ -218,6 +218,9 @@
     }
   };
 
+  // Track whether user has manually edited Net Profit
+  let netNowTouched = false;
+
   // ---------- helpers ----------
   function lsFirstNumber(keys){
     for (const k of keys){
@@ -305,21 +308,27 @@
 
   // ---------- calcs ----------
   function computeNow(){
-    const rev = num("revenue");
+    const rev  = num("revenue");
     const cogs = num("cogs");
     const opex = num("opex");
+
     let gp=null, np=null;
 
     if (rev || cogs || opex){
-      gp = (rev||0) - (cogs||0);
-      np = gp - (opex||0);
+      gp = (rev || 0) - (cogs || 0);
+      np = gp - (opex || 0);
+
       setVal("grossNow", String(gp));
-      if (!num("netNow")) setVal("netNow", String(np));
-    }else{
+
+      // Only auto-fill Net Profit if user hasn't typed in it this session
+      if (!netNowTouched) {
+        setVal("netNow", String(np));
+      }
+    } else {
       gp = num("grossNow") || null;
-      np = num("netNow") || 0;
+      np = num("netNow")  || 0;
     }
-    return { gpNow:gp, npNow:np };
+    return { gpNow: gp, npNow: np };
   }
 
   function totalSavings(){
@@ -409,6 +418,8 @@
       if (el.type === "checkbox") el.checked = (id==="applyFixes" || id==="applyORS");
       else el.value = "";
     }
+    // reset the “user typed net profit” flag
+    netNowTouched = false;
     recalc();
   }
 
@@ -434,6 +445,9 @@
         localStorage.setItem(id, el.type === "checkbox" ? String(el.checked) : el.value);
       });
     }
+
+    // mark when the user edits Net Profit manually
+    document.getElementById("netNow")?.addEventListener("input", () => { netNowTouched = true; });
 
     // 3) Backfill from other module keys if still empty
     if (!num("payrollSavings")){ const v = lsFirstNumber(KEYMAP.savings.payroll); if (v!=null) setVal("payrollSavings", v); }
