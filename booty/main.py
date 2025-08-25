@@ -1,3 +1,4 @@
+from uuid import uuid4
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -319,7 +320,7 @@ async def send_risk_report(request: Request):
     try:
         data = await request.json()
 
-               # === CAPTCHA VALIDATION ===
+        # === CAPTCHA VALIDATION ===
         captcha_token = data.get("captcha_token")
         secret = os.getenv("RECAPTCHA_SECRET_KEY")
 
@@ -339,14 +340,63 @@ async def send_risk_report(request: Request):
         if not verify_result.get("success"):
             raise HTTPException(status_code=400, detail="CAPTCHA validation failed")
 
-        # ORS Calculation
+        # ORS Calculation (merge into data for the email template)
         try:
             ors_result = run_operational_risk(RiskInput(**data))
             data.update(ors_result)
         except Exception as calc_error:
             print("ORS calculation failed:", calc_error)
 
-        # Mailgun Send
+        # ---- Build snapshot JSON (no side-effects; returned to client) ----
+        def _num(x):
+            try:
+                if x is None or x == "": 
+                    return None
+                return float(x)
+            except:
+                return None
+
+        snapshot = {
+            "report_id": str(uuid4()),
+            "email": data.get("recipient"),
+            "snapshot_at": pd.Timestamp.utcnow().isoformat() + "Z",
+            "version": "ors-snapshot-1",
+            "currency": "AUD",
+            "inputs": {
+                "revenue": _num(data.get("total_revenue")),
+                "cogs": _num(data.get("cogs")),
+                "opex": _num(data.get("opex")),
+                "gross_now": _num(data.get("gross_now")),
+                "net_now": _num(data.get("net_now")),
+            },
+            "savings": {
+                "payroll_savings": _num(data.get("payroll_savings")),
+                "churn_recovery": _num(data.get("churn_recovery")),
+                "workforce_gain": _num(data.get("workforce_gain")),
+                "deep_dive_gain": _num(data.get("deep_dive_gain")),
+                "leadership_reduction": _num(data.get("leadership_reduction")),
+            },
+            "risk": {
+                # Use total_risk_dollars as the canonical ORS $ risk for now
+                "ors_ebitda_at_risk": _num(data.get("total_risk_dollars")),
+            },
+        }
+
+        # Derived totals only if we have the inputs
+        fixes_vals = [v for v in (snapshot["savings"] or {}).values() if isinstance(v, (int, float))]
+        fixes_total = sum(fixes_vals) if fixes_vals else None
+        net_now = snapshot["inputs"].get("net_now")
+        ors_risk = snapshot["risk"].get("ors_ebitda_at_risk")
+        best_case_net = None
+        if isinstance(net_now, (int, float)):
+            best_case_net = net_now + (fixes_total or 0) + (ors_risk or 0)
+
+        snapshot["totals"] = {
+            "fixes_total": fixes_total,
+            "best_case_net": best_case_net
+        }
+
+        # ---- Mailgun Send (unchanged) ----
         mg_api_key = os.getenv("MAILGUN_API_KEY")
         mg_domain = os.getenv("MAILGUN_DOMAIN")
         mg_sender = os.getenv("MAILGUN_SENDER")
@@ -369,35 +419,8 @@ async def send_risk_report(request: Request):
         if response.status_code != 200:
             raise Exception(f"Mailgun Error: {response.text}")
 
-        return {"success": True, "message": "Report sent."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/unlock-user")
-async def unlock_user_email(request: Request):
-    try:
-        data = await request.json()
-        email = data.get("email")
-        if not email or "@" not in email:
-            raise HTTPException(status_code=400, detail="Invalid email.")
-
-        # Forward to Google Apps Script
-        gs_url = "https://script.google.com/macros/s/AKfycbwbtb1kDD5fOJrtCVtfcVq2H5vdgrpYhw89zpnJryUEiuset9AUBWSkNRPTU_5So-t-/exec"
-        timestamp = pd.Timestamp.now().isoformat()
-
-        response = requests.post(
-            gs_url,
-            data={
-                "email": email,
-                "timestamp": timestamp,
-                "source": "module-unlock"
-            }
-        )
-
-        if not response.ok:
-            raise Exception(f"Google Sheets logging failed: {response.text}")
-
-        return {"success": True}
+        # Return existing success + the snapshot (safe additive change)
+        return {"success": True, "message": "Report sent.", "snapshot": snapshot}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
