@@ -207,6 +207,16 @@ small,
   margin-bottom: 8px;
 }
 
+/* === Profit Potential highlight === */
+.calc-tab[data-key="profit_potential"]{
+  border: 2px solid #ff4d4f !important;
+  box-shadow: 0 0 14px rgba(255,77,79,.35), inset 0 0 10px rgba(255,77,79,.25);
+}
+.calc-tab[data-key="profit_potential"].active{
+  border-color: #ff7875 !important;
+  box-shadow: 0 0 18px rgba(255,120,117,.45), inset 0 0 12px rgba(255,120,117,.35);
+}
+
 /* CONTENT */
 .content {
   background-color: #333;
