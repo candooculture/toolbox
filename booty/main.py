@@ -1,8 +1,16 @@
 from uuid import uuid4
+import os
+import base64
+import hashlib
+from typing import Optional, Dict
+
+import pandas as pd
+import requests
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import Optional, Dict
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+
 from admin import admin_router
 from calculator import (
     industry_benchmarks,
@@ -15,14 +23,34 @@ from calculator import (
 from operational_risk import run_operational_risk, RiskInput
 from profit_projection import router as profit_router
 from profit_projection import ProfitRequest, compute_projection
-import pandas as pd
-import os
-import requests
 
+
+# === App ===
 app = FastAPI()
 
-from fastapi import Request, HTTPException  # (keep if already imported)
+# === CORS ===
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://www.candooculture.com",
+        "https://candooculture.com",
+        "https://clarity.candooculture.com",
+    ],
+    allow_credentials=True,
+    allow_methods=["POST", "GET", "OPTIONS"],
+    allow_headers=["*"],
+)
 
+# Health check
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+app.include_router(admin_router)
+app.include_router(profit_router)
+
+
+# === Simple unlock capture (Sheets log, non-blocking) ===
 @app.post("/unlock-user")
 async def unlock_user_email(request: Request):
     """
@@ -34,7 +62,6 @@ async def unlock_user_email(request: Request):
         if "@" not in email:
             raise HTTPException(status_code=400, detail="Invalid email")
 
-        # Sheets logging (same URL as before)
         gs_url = "https://script.google.com/macros/s/AKfycbwbtb1kDD5fOJrtCVtfcVq2H5vdgrpYhw89zpnJryUEiuset9AUBWSkNRPTU_5So-t-/exec"
         timestamp = pd.Timestamp.utcnow().isoformat() + "Z"
 
@@ -54,35 +81,11 @@ async def unlock_user_email(request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        # Don’t block the UX on logging issues
         print(f"⚠️ /unlock-user error (non-fatal): {e}")
         return {"success": True}
 
-# === CORS ===
-from fastapi.middleware.cors import CORSMiddleware  # (only if not already imported)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://www.candooculture.com",
-        "https://candooculture.com",
-        "https://clarity.candooculture.com",
-    ],
-    allow_credentials=True,
-    allow_methods=["POST", "GET", "OPTIONS"],
-    allow_headers=["*"],
-)
-
-# Health check (add once, anywhere after app = FastAPI())
-@app.get("/healthz")
-def healthz():
-    return {"ok": True}
-
-app.include_router(admin_router)
-app.include_router(profit_router)
-
-# === Input Models ===
-
+# === Input Models for calculators ===
 class EfficiencyAutoInput(BaseModel):
     industry: str
     total_employees: int
@@ -120,8 +123,8 @@ class ProductivityDeepDiveInput(BaseModel):
     absenteeism_days: Optional[float] = 0
     avg_hours: Optional[float] = 0
 
-# === Module Calculators ===
 
+# === Module Calculator Endpoints ===
 @app.post("/run-payroll-waste")
 def run_payroll_waste(data: EfficiencyAutoInput):
     return calculate_efficiency_loss_and_roi(data)
@@ -163,7 +166,6 @@ def get_all_industries():
 
 
 # === ORS Scoring Endpoint ===
-
 @app.post("/run-operational-risk")
 def run_operational_risk_calculator(data: RiskInput):
     try:
@@ -171,8 +173,8 @@ def run_operational_risk_calculator(data: RiskInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# === Email Report Builder ===
 
+# === ORS Email Report (existing) ===
 def format_dollars(value):
     if value is None or value == "N/A":
         return "$N/A"
@@ -354,6 +356,7 @@ def render_report_html(data):
 </html>
     """
 
+
 @app.post("/send-risk-report")
 async def send_risk_report(request: Request):
     try:
@@ -382,7 +385,7 @@ async def send_risk_report(request: Request):
             print("ORS calculation failed:", calc_error)
             ors_result = {}
 
-        # ---------- Build snapshot (use ORS result as source of truth) ----------
+        # ---------- Build snapshot ----------
         def _num(x):
             try:
                 if x is None or x == "":
@@ -396,7 +399,7 @@ async def send_risk_report(request: Request):
         def bdnum(label, fallback_key=None):
             v = _num(breakdown.get(label))
             if v is None and fallback_key:
-                v = _num(data.get(fallback_key))  # legacy fallback if ever sent
+                v = _num(data.get(fallback_key))
             return v
 
         snapshot = {
@@ -413,7 +416,6 @@ async def send_risk_report(request: Request):
                 "net_now":   _num(data.get("net_now")),
             },
             "savings": {
-                # map email “Risk Breakdown” labels -> Profit fields
                 "payroll_savings":      bdnum("Payroll Waste",            "payroll_savings"),
                 "churn_recovery":       bdnum("Customer Churn",           "churn_recovery"),
                 "workforce_gain":       bdnum("Workforce Productivity",   "workforce_gain"),
@@ -425,7 +427,6 @@ async def send_risk_report(request: Request):
             },
         }
 
-        # Derived totals
         fixes_vals = [v for v in snapshot["savings"].values() if isinstance(v, (int, float))]
         fixes_total = sum(fixes_vals) if fixes_vals else None
         net_now = snapshot["inputs"].get("net_now")
@@ -438,9 +439,8 @@ async def send_risk_report(request: Request):
             "fixes_total": fixes_total,
             "best_case_net": best_case_net
         }
-        # -----------------------------------------------------------------------
 
-        # ---- Mailgun send (unchanged) ----
+        # ---- Mailgun send ----
         mg_api_key = os.getenv("MAILGUN_API_KEY")
         mg_domain = os.getenv("MAILGUN_DOMAIN")
         mg_sender = os.getenv("MAILGUN_SENDER")
@@ -466,9 +466,8 @@ async def send_risk_report(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-from fastapi.responses import HTMLResponse
-import os
 
+# === Protected module loader (index admin) ===
 @app.post("/api/load-protected-module")
 async def load_protected_module(request: Request):
     data = await request.json()
@@ -483,7 +482,7 @@ async def load_protected_module(request: Request):
     try:
         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         full_path = os.path.join(project_root, "grill", module_file)
-        
+
         print("🔍 Attempting to load:", full_path)
         print("📂 File exists:", os.path.isfile(full_path))
 
@@ -499,13 +498,8 @@ async def load_protected_module(request: Request):
         print(f"💥 Error loading module HTML: {e}")
         raise HTTPException(status_code=500, detail="Failed to load module HTML")
 
-# ====== Order form endpoint (Mailgun) ======
-import os, base64, hashlib
-import requests
-from pydantic import BaseModel
-from fastapi import HTTPException
-from typing import Optional, Dict
 
+# ====== Order form endpoint (Mailgun) ======
 MAILGUN_API_KEY  = os.getenv("MAILGUN_API_KEY")
 MAILGUN_DOMAIN   = os.getenv("MAILGUN_DOMAIN")            # e.g. mg.candooculture.com
 MAILGUN_SENDER   = os.getenv("MAILGUN_SENDER")            # e.g. orders@candooculture.com
@@ -530,7 +524,7 @@ async def order_sign(payload: OrderPayload):
     if not (MAILGUN_API_KEY and MAILGUN_DOMAIN and MAILGUN_SENDER):
         raise HTTPException(status_code=500, detail="Mailgun not configured")
 
-    # Basic field checks (client already enforces these)
+    # Basic field checks
     f = payload.form or {}
     required = ["company","abn","name","title","email","phone","initial_users","start_date"]
     for k in required:
@@ -577,7 +571,6 @@ async def order_sign(payload: OrderPayload):
         "html": html,
         "h:Reply-To": "aaron@candooculture.com",
     }
-    # BCC internal copy (ORDER_NOTIFY beats sender)
     if ORDER_NOTIFY:
         data["bcc"] = [ORDER_NOTIFY]
     else:
@@ -585,8 +578,6 @@ async def order_sign(payload: OrderPayload):
 
     files = [
         ("attachment", ("Candoo-Order.pdf", pdf_bytes, "application/pdf")),
-        # Optional: include the raw signature image:
-        # ("attachment", ("signature.png", base64.b64decode(payload.signature_png.split(",")[1]), "image/png")),
     ]
 
     r = requests.post(
@@ -602,10 +593,9 @@ async def order_sign(payload: OrderPayload):
 
     msg_id = r.json().get("id") if "application/json" in r.headers.get("content-type","") else None
     return {"ok": True, "id": msg_id}
-# ===========================================
+
 
 # === Profit Report (email) ===
-
 def _fmt(n):
     try:
         return format_dollars(n)
@@ -757,7 +747,7 @@ async def send_profit_report(request: Request):
         if r.status_code >= 300:
             raise HTTPException(status_code=502, detail=f"Mailgun error: {r.text}")
 
-        # Optional: include a lightweight snapshot in API response
+        # Optional API response snapshot
         snapshot = {
             "report_id": str(uuid4()),
             "email": recipient,
