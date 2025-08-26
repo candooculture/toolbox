@@ -399,279 +399,294 @@
     alert("Report queued to send. (Frontend ready — backend wiring next.)");
   });
   </script>
-<script>
-  
-  // ---- Storage Keys (soft conventions; we try multiple) ----
-  const KEYMAP = {
-    ors: ["ors_ebitda_at_risk", "ors-ebitda-risk", "orsTotalRisk", "ORS_EBITDA_AT_RISK"],
-    savings: {
-      payroll: ["payroll-waste-savings", "payrollSavings", "payroll_waste_savings"],
-      churn: ["customer-churn-savings", "churnSavings", "customer_churn_savings"],
-      workforce: ["workforce-productivity-savings", "workforceSavings", "workforce_productivity_savings"],
-      deep: ["productivity-deep-dive-savings", "deepDiveSavings", "productivity_deep_dive_savings"],
-      leadership: ["leadership-drag-savings", "leadershipSavings", "leadership_drag_savings"]
-    }
-  };
 
-  // Track whether user has manually edited Net Profit
-  let netNowTouched = false;
+      <script>
+// ---- Storage Keys (soft conventions; we try multiple) ----
+const KEYMAP = {
+  ors: ["ors_ebitda_at_risk", "ors-ebitda-risk", "orsTotalRisk", "ORS_EBITDA_AT_RISK"],
+  savings: {
+    payroll: ["payroll-waste-savings", "payrollSavings", "payroll_waste_savings"],
+    churn: ["customer-churn-savings", "churnSavings", "customer_churn_savings"],
+    workforce: ["workforce-productivity-savings", "workforceSavings", "workforce_productivity_savings"],
+    deep: ["productivity-deep-dive-savings", "deepDiveSavings", "productivity_deep_dive_savings"],
+    leadership: ["leadership-drag-savings", "leadershipSavings", "leadership_drag_savings"]
+  }
+};
 
-  // ---------- helpers ----------
-  function lsFirstNumber(keys){
-    for (const k of keys){
-      const raw = localStorage.getItem(k);
-      if (!raw) continue;
-      const v = Number(String(raw).replace(/,/g,"").trim());
-      if (!Number.isNaN(v)) return v;
-      try{
-        const obj = JSON.parse(raw);
-        const candidates = ["value","amount","total","ebitda_at_risk","ebitdaRisk","risk","savings","gain"];
-        for (const c of candidates){
-          if (obj && typeof obj==="object" && obj[c]!=null){
-            const n = Number(String(obj[c]).replace(/,/g,""));
-            if (!Number.isNaN(n)) return n;
-          }
+// Track whether user has manually edited Net Profit
+let netNowTouched = false;
+
+// ---------- helpers ----------
+function lsFirstNumber(keys){
+  for (const k of keys){
+    const raw = localStorage.getItem(k);
+    if (!raw) continue;
+    const v = Number(String(raw).replace(/,/g,"").trim());
+    if (!Number.isNaN(v)) return v;
+    try{
+      const obj = JSON.parse(raw);
+      const candidates = ["value","amount","total","ebitda_at_risk","ebitdaRisk","risk","savings","gain"];
+      for (const c of candidates){
+        if (obj && typeof obj==="object" && obj[c]!=null){
+          const n = Number(String(obj[c]).replace(/,/g,""));
+          if (!Number.isNaN(n)) return n;
         }
-      }catch(_){}
-    }
-    return null;
+      }
+    }catch(_){}
   }
+  return null;
+}
 
-  function fmt(n){
-    if (n==null || Number.isNaN(n)) return "–";
-    return n.toLocaleString(undefined,{style:"currency",currency:"AUD",maximumFractionDigits:0});
+function fmt(n){
+  if (n==null || Number.isNaN(n)) return "–";
+  return n.toLocaleString(undefined,{style:"currency",currency:"AUD",maximumFractionDigits:0});
+}
+
+function num(id){
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  const v = Number(String(el.value).replace(/,/g,"").trim());
+  return Number.isFinite(v)? v:0;
+}
+
+function setVal(id,value){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = value ?? "";
+  localStorage.setItem(id, el.value);
+}
+
+// ---------- snapshot preload ----------
+function readSnapshotFromLocal(){
+  const keys = ["ors_last_snapshot","ors_snapshot"];
+  for (const k of keys){
+    const raw = localStorage.getItem(k);
+    if (!raw) continue;
+    try{
+      const s = JSON.parse(raw);
+      if (s && (s.inputs || s.savings || s.risk)) return s;
+    }catch(_){}
   }
+  return null;
+}
 
-  function num(id){
-    const el = document.getElementById(id);
-    if (!el) return 0;
-    const v = Number(String(el.value).replace(/,/g,"").trim());
-    return Number.isFinite(v)? v:0;
-  }
-
-  function setVal(id,value){
+function applySnapshotToInputs(s){
+  let changed = 0;
+  const put = (id, val) => {
+    if (val==null) return;
     const el = document.getElementById(id);
     if (!el) return;
-    el.value = value ?? "";
-    localStorage.setItem(id, el.value);
-  }
+    if (String(el.value).trim() !== "") return; // don't overwrite user input
+    setVal(id, String(val));
+    changed++;
+  };
 
-  // ---------- snapshot preload ----------
-  function readSnapshotFromLocal(){
-    const keys = ["ors_last_snapshot","ors_snapshot"];
-    for (const k of keys){
-      const raw = localStorage.getItem(k);
-      if (!raw) continue;
-      try{
-        const s = JSON.parse(raw);
-        if (s && (s.inputs || s.savings || s.risk)) return s;
-      }catch(_){}
+  if (s.inputs){
+    put("revenue",   s.inputs.revenue);
+    put("cogs",      s.inputs.cogs);
+    put("opex",      s.inputs.opex);
+    put("grossNow",  s.inputs.gross_now);
+    put("netNow",    s.inputs.net_now);
+  }
+  if (s.savings){
+    put("payrollSavings",   s.savings.payroll_savings);
+    put("churnSavings",     s.savings.churn_recovery);
+    put("workforceSavings", s.savings.workforce_gain);
+    put("deepDiveSavings",  s.savings.deep_dive_gain);
+    put("leadershipSavings",s.savings.leadership_reduction);
+  }
+  if (s.risk){
+    put("orsRisk", s.risk.ors_ebitda_at_risk);
+  }
+  return changed>0;
+}
+
+// ---------- calcs ----------
+function computeNow(){
+  const rev  = num("revenue");
+  const cogs = num("cogs");
+  const opex = num("opex");
+
+  let gp=null, np=null;
+
+  if (rev || cogs || opex){
+    gp = (rev || 0) - (cogs || 0);
+    np = gp - (opex || 0);
+
+    setVal("grossNow", String(gp));
+
+    // Only auto-fill Net Profit if user hasn't typed in it this session
+    if (!netNowTouched) {
+      setVal("netNow", String(np));
     }
-    return null;
-  }
-
-  function applySnapshotToInputs(s){
-    let changed = 0;
-    const put = (id, val) => {
-      if (val==null) return;
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (String(el.value).trim() !== "") return; // don't overwrite user input
-      setVal(id, String(val));
-      changed++;
-    };
-
-    if (s.inputs){
-      put("revenue",   s.inputs.revenue);
-      put("cogs",      s.inputs.cogs);
-      put("opex",      s.inputs.opex);
-      put("grossNow",  s.inputs.gross_now);
-      put("netNow",    s.inputs.net_now);
-    }
-    if (s.savings){
-      put("payrollSavings",   s.savings.payroll_savings);
-      put("churnSavings",     s.savings.churn_recovery);
-      put("workforceSavings", s.savings.workforce_gain);
-      put("deepDiveSavings",  s.savings.deep_dive_gain);
-      put("leadershipSavings",s.savings.leadership_reduction);
-    }
-    if (s.risk){
-      put("orsRisk", s.risk.ors_ebitda_at_risk);
-    }
-    return changed>0;
-  }
-
-  // ---------- calcs ----------
-  function computeNow(){
-    const rev  = num("revenue");
-    const cogs = num("cogs");
-    const opex = num("opex");
-
-    let gp=null, np=null;
-
-    if (rev || cogs || opex){
-      gp = (rev || 0) - (cogs || 0);
-      np = gp - (opex || 0);
-
-      setVal("grossNow", String(gp));
-
-      // Only auto-fill Net Profit if user hasn't typed in it this session
-      if (!netNowTouched) {
-        setVal("netNow", String(np));
-      }
-    } else {
-      gp = num("grossNow") || null;
-      np = num("netNow")  || 0;
-    }
-    return { gpNow: gp, npNow: np };
-  }
-
-  function totalSavings(){
-    return num("payrollSavings")+num("churnSavings")+num("workforceSavings")+num("deepDiveSavings")+num("leadershipSavings");
-  }
-
-  function deltaBadge(delta){
-    if (!Number.isFinite(delta)) return "–";
-    const cls = delta >= 0 ? "pos" : "neg";
-    const sign = delta >= 0 ? "+" : "";
-    return `<span class="${cls}">${sign}${fmt(delta)}</span>`;
-  }
-
-  function recalc(){
-    const { gpNow, npNow } = computeNow();
-    const fixes = totalSavings();
-    const ors = num("orsRisk");
-    const useFixes = document.getElementById("applyFixes").checked;
-    const useORS = document.getElementById("applyORS").checked;
-
-    document.getElementById("gpNowCell").textContent = fmt(gpNow);
-    document.getElementById("npNowCell").textContent = fmt(npNow);
-
-    const npFix = npNow + (useFixes ? fixes : 0);
-    document.getElementById("gpFixCell").textContent = fmt(gpNow);
-    document.getElementById("npFixCell").textContent = fmt(npFix);
-    document.getElementById("npFixDelta").innerHTML = deltaBadge(npFix - npNow);
-
-    const npORS = npNow + (useORS ? ors : 0);
-    document.getElementById("gpORSCell").textContent = fmt(gpNow);
-    document.getElementById("npORSCell").textContent = fmt(npORS);
-    document.getElementById("npORSDelta").innerHTML = deltaBadge(npORS - npNow);
-
-    const npBest = npNow + (useFixes ? fixes : 0) + (useORS ? ors : 0);
-    document.getElementById("gpBestCell").textContent = fmt(gpNow);
-    document.getElementById("npBestCell").textContent = fmt(npBest);
-    document.getElementById("npBestDelta").innerHTML = deltaBadge(npBest - npNow);
-
-    const period = (document.getElementById("periodLabel").value || "this period");
-    document.getElementById("summary").textContent =
-      `In ${period}, fixing inefficiencies adds ${fmt(useFixes ? fixes : 0)}, eliminating ORS adds ${fmt(useORS ? ors : 0)}. Best-case Net Profit becomes ${fmt(npBest)} (from ${fmt(npNow)}).`;
-  }
-
-  function copyJSON(){
-    const payload = {
-      period: document.getElementById("periodLabel").value || null,
-      inputs: {
-        revenue: num("revenue"), cogs: num("cogs"), opex: num("opex"),
-        grossNow: num("grossNow") || null, netNow: num("netNow"),
-      },
-      savings: {
-        payroll: num("payrollSavings"), churn: num("churnSavings"),
-        workforce: num("workforceSavings"), deepDive: num("deepDiveSavings"),
-        leadership: num("leadershipSavings"),
-      },
-      ors: { ebitdaAtRisk: num("orsRisk") },
-      scenarios: {
-        applyFixes: document.getElementById("applyFixes").checked,
-        applyORS: document.getElementById("applyORS").checked
-      },
-      results: {
-        now: { gross: gpNowCell.textContent, net: npNowCell.textContent },
-        fixes: { gross: gpFixCell.textContent, net: npFixCell.textContent, delta: npFixDelta.innerText },
-        orsOnly:{ gross: gpORSCell.textContent, net: npORSCell.textContent, delta: npORSDelta.innerText },
-        best:   { gross: gpBestCell.textContent, net: npBestCell.textContent, delta: npBestDelta.innerText }
-      }
-    };
-    const text = JSON.stringify(payload, null, 2);
-    navigator.clipboard.writeText(text).then(
-      () => alert("Copied results JSON to clipboard."),
-      () => {
-        const ta=document.createElement("textarea");
-        ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand("copy");
-        document.body.removeChild(ta); alert("Copied results JSON to clipboard.");
-      }
-    );
-  }
-
-  function clearPage(){
-    const ids = ["revenue","cogs","opex","grossNow","netNow","periodLabel",
-      "payrollSavings","churnSavings","workforceSavings","deepDiveSavings","leadershipSavings","orsRisk",
-      "applyFixes","applyORS"];
-    for (const id of ids){
-      localStorage.removeItem(id);
-      const el = document.getElementById(id);
-      if (!el) continue;
-      if (el.type === "checkbox") el.checked = (id==="applyFixes" || id==="applyORS");
-      else el.value = "";
-    }
-    // reset the “user typed net profit” flag
-    netNowTouched = false;
-    recalc();
-  }
-
-  // ---------- INIT (works even when injected after DOMContentLoaded) ----------
-  function boot(){
-    // 1) Try snapshot (if ORS page saved it)
-    const snap = readSnapshotFromLocal();
-    if (snap) applySnapshotToInputs(snap);
-
-    // 2) Usual preload of saved values and cross-module keys
-    const ids = ["revenue","cogs","opex","grossNow","netNow","periodLabel",
-      "payrollSavings","churnSavings","workforceSavings","deepDiveSavings","leadershipSavings","orsRisk",
-      "applyFixes","applyORS"];
-    for (const id of ids){
-      const el = document.getElementById(id);
-      if (!el) continue;
-      const stored = localStorage.getItem(id);
-      if (stored != null){
-        if (el.type === "checkbox") el.checked = stored === "true";
-        else if (!el.value) el.value = stored;
-      }
-      el.addEventListener(el.type === "checkbox" ? "change" : "input", () => {
-        localStorage.setItem(id, el.type === "checkbox" ? String(el.checked) : el.value);
-      });
-    }
-
-    // mark when the user edits Net Profit manually
-    document.getElementById("netNow")?.addEventListener("input", () => { netNowTouched = true; });
-
-    // 3) Backfill from other module keys if still empty
-    if (!num("payrollSavings")){ const v = lsFirstNumber(KEYMAP.savings.payroll); if (v!=null) setVal("payrollSavings", v); }
-    if (!num("churnSavings")){ const v = lsFirstNumber(KEYMAP.savings.churn); if (v!=null) setVal("churnSavings", v); }
-    if (!num("workforceSavings")){ const v = lsFirstNumber(KEYMAP.savings.workforce); if (v!=null) setVal("workforceSavings", v); }
-    if (!num("deepDiveSavings")){ const v = lsFirstNumber(KEYMAP.savings.deep); if (v!=null) setVal("deepDiveSavings", v); }
-    if (!num("leadershipSavings")){ const v = lsFirstNumber(KEYMAP.savings.leadership); if (v!=null) setVal("leadershipSavings", v); }
-    if (!num("orsRisk")){ const v = lsFirstNumber(KEYMAP.ors); if (v!=null) setVal("orsRisk", v); }
-
-    // listeners + first calc
-    ["revenue","cogs","opex","netNow","payrollSavings","churnSavings","workforceSavings","deepDiveSavings","leadershipSavings","orsRisk","applyFixes","applyORS","periodLabel"]
-      .forEach(id => {
-        const el=document.getElementById(id);
-        if (!el) return;
-        el.addEventListener(el.type==="checkbox"?"change":"input", recalc);
-      });
-    document.getElementById("recalc")?.addEventListener("click", recalc);
-    document.getElementById("copyJSON")?.addEventListener("click", copyJSON);
-    document.getElementById("clear")?.addEventListener("click", clearPage);
-
-    recalc();
-  }
-
-  // Run immediately if DOM is already loaded (modules are injected after DOMContentLoaded)
-  if (document.readyState === "loading") {
-    window.addEventListener("DOMContentLoaded", boot);
   } else {
-    boot();
+    gp = num("grossNow") || null;
+    np = num("netNow")  || 0;
   }
+  return { gpNow: gp, npNow: np };
+}
+
+function totalSavings(){
+  return num("payrollSavings")+num("churnSavings")+num("workforceSavings")+num("deepDiveSavings")+num("leadershipSavings");
+}
+
+function deltaBadge(delta){
+  if (!Number.isFinite(delta)) return "–";
+  const cls = delta >= 0 ? "pos" : "neg";
+  const sign = delta >= 0 ? "+" : "";
+  return `<span class="${cls}">${sign}${fmt(delta)}</span>`;
+}
+
+function recalc(){
+  const { gpNow, npNow } = computeNow();
+  const fixes = totalSavings();
+  const ors = num("orsRisk");
+  const useFixes = document.getElementById("applyFixes")?.checked ?? false;
+  const useORS = document.getElementById("applyORS")?.checked ?? false;
+
+  // --- Table: Fixable Savings ---
+  const gpNowCell = document.getElementById("gpNowCell");
+  const npNowCell = document.getElementById("npNowCell");
+  if (gpNowCell) gpNowCell.textContent = fmt(gpNow);
+  if (npNowCell) npNowCell.textContent = fmt(npNow);
+
+  const npFix = npNow + (useFixes ? fixes : 0);
+  const gpFixCell = document.getElementById("gpFixCell");
+  const npFixCell = document.getElementById("npFixCell");
+  const npFixDelta = document.getElementById("npFixDelta");
+  if (gpFixCell) gpFixCell.textContent = fmt(gpNow);
+  if (npFixCell) npFixCell.textContent = fmt(npFix);
+  if (npFixDelta) npFixDelta.innerHTML = deltaBadge(npFix - npNow);
+
+  // --- Table: ORS Risk ---
+  const gpNowORS = document.getElementById("gpNowORS");
+  const npNowORS = document.getElementById("npNowORS");
+  if (gpNowORS) gpNowORS.textContent = fmt(gpNow);
+  if (npNowORS) npNowORS.textContent = fmt(npNow);
+
+  const npORS = npNow + (useORS ? ors : 0);
+  const gpORSCell = document.getElementById("gpORSCell");
+  const npORSCell = document.getElementById("npORSCell");
+  const npORSDelta = document.getElementById("npORSDelta");
+  if (gpORSCell) gpORSCell.textContent = fmt(gpNow);
+  if (npORSCell) npORSCell.textContent = fmt(npORS);
+  if (npORSDelta) npORSDelta.innerHTML = deltaBadge(npORS - npNow);
+}
+
+// Copy JSON (defensive: don’t rely on window globals; no ‘best’/‘summary’)
+function copyJSON(){
+  const val = id => document.getElementById(id)?.textContent || "–";
+  const payload = {
+    period: document.getElementById("periodLabel")?.value || null,
+    inputs: {
+      revenue: num("revenue"), cogs: num("cogs"), opex: num("opex"),
+      grossNow: num("grossNow") || null, netNow: num("netNow"),
+    },
+    savings: {
+      payroll: num("payrollSavings"), churn: num("churnSavings"),
+      workforce: num("workforceSavings"), deepDive: num("deepDiveSavings"),
+      leadership: num("leadershipSavings"),
+    },
+    ors: { ebitdaAtRisk: num("orsRisk") },
+    scenarios: {
+      applyFixes: !!document.getElementById("applyFixes")?.checked,
+      applyORS: !!document.getElementById("applyORS")?.checked
+    },
+    results: {
+      now:    { gross: val("gpNowCell"),  net: val("npNowCell") },
+      fixes:  { gross: val("gpFixCell"),  net: val("npFixCell"),  delta: document.getElementById("npFixDelta")?.innerText || "–" },
+      orsOnly:{ gross: val("gpORSCell"),  net: val("npORSCell"),  delta: document.getElementById("npORSDelta")?.innerText || "–" },
+      nowORS: { gross: val("gpNowORS"),   net: val("npNowORS") }
+    }
+  };
+  const text = JSON.stringify(payload, null, 2);
+  navigator.clipboard.writeText(text).then(
+    () => alert("Copied results JSON to clipboard."),
+    () => {
+      const ta=document.createElement("textarea");
+      ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand("copy");
+      document.body.removeChild(ta); alert("Copied results JSON to clipboard.");
+    }
+  );
+}
+
+function clearPage(){
+  const ids = ["revenue","cogs","opex","grossNow","netNow","periodLabel",
+    "payrollSavings","churnSavings","workforceSavings","deepDiveSavings","leadershipSavings","orsRisk",
+    "applyFixes","applyORS"];
+  for (const id of ids){
+    localStorage.removeItem(id);
+    const el = document.getElementById(id);
+    if (!el) continue;
+    if (el.type === "checkbox") el.checked = false;   // default OFF
+    else el.value = "";
+  }
+  netNowTouched = false;
+  recalc();
+}
+
+// ---------- INIT (works even when injected after DOMContentLoaded) ----------
+function boot(){
+  // 1) Try snapshot (if ORS page saved it)
+  const snap = readSnapshotFromLocal();
+  if (snap) applySnapshotToInputs(snap);
+
+  // 2) Usual preload of saved values and cross-module keys
+  const ids = ["revenue","cogs","opex","grossNow","netNow","periodLabel",
+    "payrollSavings","churnSavings","workforceSavings","deepDiveSavings","leadershipSavings","orsRisk",
+    "applyFixes","applyORS"];
+  for (const id of ids){
+    const el = document.getElementById(id);
+    if (!el) continue;
+    const stored = localStorage.getItem(id);
+    if (stored != null){
+      if (el.type === "checkbox") el.checked = stored === "true";
+      else if (!el.value) el.value = stored;
+    }
+    el.addEventListener(el.type === "checkbox" ? "change" : "input", () => {
+      localStorage.setItem(id, el.type === "checkbox" ? String(el.checked) : el.value);
+    });
+  }
+
+  // mark when the user edits Net Profit manually
+  document.getElementById("netNow")?.addEventListener("input", () => { netNowTouched = true; });
+
+  // 3) Backfill from other module keys if still empty
+  if (!num("payrollSavings")){ const v = lsFirstNumber(KEYMAP.savings.payroll); if (v!=null) setVal("payrollSavings", v); }
+  if (!num("churnSavings")){ const v = lsFirstNumber(KEYMAP.savings.churn); if (v!=null) setVal("churnSavings", v); }
+  if (!num("workforceSavings")){ const v = lsFirstNumber(KEYMAP.savings.workforce); if (v!=null) setVal("workforceSavings", v); }
+  if (!num("deepDiveSavings")){ const v = lsFirstNumber(KEYMAP.savings.deep); if (v!=null) setVal("deepDiveSavings", v); }
+  if (!num("leadershipSavings")){ const v = lsFirstNumber(KEYMAP.savings.leadership); if (v!=null) setVal("leadershipSavings", v); }
+  if (!num("orsRisk")){ const v = lsFirstNumber(KEYMAP.ors); if (v!=null) setVal("orsRisk", v); }
+
+  // listeners + first calc
+  [
+    "revenue","cogs","opex","netNow","payrollSavings","churnSavings",
+    "workforceSavings","deepDiveSavings","leadershipSavings","orsRisk",
+    "applyFixes","applyORS","periodLabel"
+  ].forEach(id => {
+    const el=document.getElementById(id);
+    if (!el) return;
+    el.addEventListener(el.type==="checkbox"?"change":"input", recalc);
+  });
+
+  // hook the two buttons (new IDs)
+  document.getElementById("recalcFix")?.addEventListener("click", recalc);
+  document.getElementById("recalcORS")?.addEventListener("click", recalc);
+
+  // copy + clear
+  document.getElementById("copyJSON")?.addEventListener("click", copyJSON);
+  document.getElementById("clear")?.addEventListener("click", clearPage);
+
+  recalc();
+}
+
+// Run immediately if DOM is already loaded (modules are injected after DOMContentLoaded)
+if (document.readyState === "loading") {
+  window.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
 </script>
 </body>
 </html>
