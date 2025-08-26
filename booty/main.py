@@ -14,6 +14,7 @@ from calculator import (
 )
 from operational_risk import run_operational_risk, RiskInput
 from profit_projection import router as profit_router
+from profit_projection import ProfitRequest, compute_projection
 import pandas as pd
 import os
 import requests
@@ -602,3 +603,175 @@ async def order_sign(payload: OrderPayload):
     msg_id = r.json().get("id") if "application/json" in r.headers.get("content-type","") else None
     return {"ok": True, "id": msg_id}
 # ===========================================
+
+# === Profit Report (email) ===
+
+def _fmt(n):
+    try:
+        return format_dollars(n)
+    except Exception:
+        return "$N/A"
+
+def render_profit_report_html(recipient: str, payload: dict, result: dict) -> str:
+    period = payload.get("period") or "This Period"
+    i = (payload.get("inputs") or {})
+    s = (payload.get("savings") or {})
+    r = (result.get("results") or {})
+    computed = result.get("computed") or {}
+
+    # unpack safely
+    gp_now   = r.get("now", {}).get("gross")
+    np_now   = r.get("now", {}).get("net")
+    np_fix   = r.get("fixes", {}).get("net")
+    d_fix    = r.get("fixes", {}).get("delta_vs_now")
+    np_ors   = r.get("ors", {}).get("net")
+    d_ors    = r.get("ors", {}).get("delta_vs_now")
+
+    total_savings = computed.get("totalSavings", 0.0)
+    ors_risk      = computed.get("orsEbitdaAtRisk", 0.0)
+
+    return f"""
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Profit Potential – {period}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {{ font-family: "Montserrat", Arial, sans-serif; color:#0b1a21; max-width:720px; margin:0 auto; padding:28px; line-height:1.55; }}
+    h2 {{ margin:0 0 8px; }}
+    h3 {{ margin:22px 0 8px; border-bottom:1px solid #e5ecef; padding-bottom:6px; }}
+    table {{ width:100%; border-collapse:collapse; }}
+    th, td {{ padding:8px 6px; border-bottom:1px solid #edf2f5; text-align:right; }}
+    th:first-child, td:first-child {{ text-align:left; }}
+    .muted {{ color:#5a6b75; font-size:13px; }}
+    .pos {{ color:#0aa; font-weight:600; }}
+    .neg {{ color:#c33; font-weight:600; }}
+    .pill {{ display:inline-block; padding:2px 8px; border-radius:999px; background:#f2f7f9; font-size:12px; color:#335; }}
+  </style>
+</head>
+<body>
+  <h2>Profit Potential – {period}</h2>
+  <p class="muted">Critical when selling the business — EBITDA strength and operational risk directly shape both the valuation multiple and perceived risk.</p>
+
+  <h3>Current Financials</h3>
+  <table>
+    <tbody>
+      <tr><td>Revenue</td><td>{_fmt(i.get("revenue"))}</td></tr>
+      <tr><td>COGS</td><td>{_fmt(i.get("cogs"))}</td></tr>
+      <tr><td>Operating Expenses</td><td>{_fmt(i.get("opex"))}</td></tr>
+      <tr><td><strong>Gross Profit (Now)</strong></td><td><strong>{_fmt(gp_now)}</strong></td></tr>
+      <tr><td><strong>Net Profit (Now)</strong></td><td><strong>{_fmt(np_now)}</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Fixable Savings (from Toolbox)</h3>
+  <table>
+    <thead><tr><th>Driver</th><th>Amount</th></tr></thead>
+    <tbody>
+      <tr><td>Payroll Waste</td><td>{_fmt(s.get("payroll"))}</td></tr>
+      <tr><td>Customer Churn</td><td>{_fmt(s.get("churn"))}</td></tr>
+      <tr><td>Leadership Drag</td><td>{_fmt(s.get("leadership"))}</td></tr>
+      <tr><td>Workforce Productivity</td><td>{_fmt(s.get("workforce"))}</td></tr>
+      <tr><td>Productivity Deep Dive</td><td>{_fmt(s.get("deepDive"))}</td></tr>
+      <tr><td><strong>Total Fixable Savings</strong></td><td><strong>{_fmt(total_savings)}</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Operational Risk (ORS)</h3>
+  <p class="muted">EBITDA at risk if operational issues persist.</p>
+  <table>
+    <tbody>
+      <tr><td><strong>ORS – EBITDA at Risk</strong></td><td><strong>{_fmt(ors_risk)}</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Scenario Comparison</h3>
+  <table>
+    <thead><tr><th>Scenario</th><th>Net Profit</th><th>Δ vs Now</th></tr></thead>
+    <tbody>
+      <tr><td>Now</td><td>{_fmt(np_now)}</td><td class="muted">–</td></tr>
+      <tr><td>Fix Inefficiencies <span class="pill">applyFixes={str(bool(payload.get('scenarios',{{}}).get('applyFixes'))).lower()}</span></td>
+          <td>{_fmt(np_fix)}</td><td>{('<span class="pos">+' if (d_fix or 0)>=0 else '<span class="neg">') + _fmt(d_fix) + '</span>'}</td></tr>
+      <tr><td>Eliminate ORS Risk <span class="pill">applyORS={str(bool(payload.get('scenarios',{{}}).get('applyORS'))).lower()}</span></td>
+          <td>{_fmt(np_ors)}</td><td>{('<span class="pos">+' if (d_ors or 0)>=0 else '<span class="neg">') + _fmt(d_ors) + '</span>'}</td></tr>
+    </tbody>
+  </table>
+
+  <p class="muted" style="margin-top:18px">All amounts in AUD. Sent to {recipient}.</p>
+  <p class="muted">Generated by the Candoo Culture Profit Engine • https://www.candooculture.com</p>
+</body>
+</html>
+    """
+
+@app.post("/send-profit-report")
+async def send_profit_report(request: Request):
+    """
+    Accepts: { "email": "user@...", "payload": { period, inputs{}, savings{}, ors{}, scenarios{} } }
+    Recomputes results server-side and emails a nicely formatted summary via Mailgun.
+    """
+    try:
+        body = await request.json()
+        recipient = str(body.get("email", "")).strip()
+        payload = body.get("payload") or {}
+
+        if "@" not in recipient:
+            raise HTTPException(status_code=400, detail="Invalid recipient email")
+
+        # Build request model & compute server-side (trust but verify)
+        try:
+            profit_req = ProfitRequest(**payload)
+        except Exception as e:
+            raise HTTPException(status_code=422, detail=f"Bad payload: {e}")
+
+        result = compute_projection(profit_req).model_dump()
+
+        # Subject
+        period = payload.get("period")
+        subject = f"Profit Potential – {period}" if period else "Profit Potential Summary"
+
+        # Mailgun env
+        mg_api_key = os.getenv("MAILGUN_API_KEY")
+        mg_domain  = os.getenv("MAILGUN_DOMAIN")
+        mg_sender  = os.getenv("MAILGUN_SENDER")
+        if not all([mg_api_key, mg_domain, mg_sender]):
+            raise HTTPException(status_code=500, detail="Missing Mailgun environment variables")
+
+        html = render_profit_report_html(recipient, payload, result)
+
+        # Send (same pattern as /send-risk-report)
+        r = requests.post(
+            f"https://api.mailgun.net/v3/{mg_domain}/messages",
+            auth=("api", mg_api_key),
+            data={
+                "from": f"Candoo Culture Reports <{mg_sender}>",
+                "to": [recipient],
+                "bcc": ["aaron@candooculture.com"],
+                "subject": subject,
+                "html": html
+            },
+            timeout=20
+        )
+        if r.status_code >= 300:
+            raise HTTPException(status_code=502, detail=f"Mailgun error: {r.text}")
+
+        # Optional: include a lightweight snapshot in API response
+        snapshot = {
+            "report_id": str(uuid4()),
+            "email": recipient,
+            "snapshot_at": pd.Timestamp.utcnow().isoformat() + "Z",
+            "version": "profit-snapshot-1",
+            "currency": "AUD",
+            "payload": payload,
+            "computed": result.get("computed"),
+            "results": result.get("results"),
+        }
+
+        return {"success": True, "message": "Profit report sent.", "snapshot": snapshot}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
