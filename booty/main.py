@@ -705,10 +705,6 @@ def render_profit_report_html(recipient: str, payload: dict, result: dict) -> st
 
 @app.post("/send-profit-report")
 async def send_profit_report(request: Request):
-    """
-    Accepts: { "email": "user@...", "payload": { period, inputs{}, savings{}, ors{}, scenarios{} } }
-    Recomputes results server-side and emails a nicely formatted summary via Mailgun.
-    """
     try:
         body = await request.json()
         recipient = str(body.get("email", "")).strip()
@@ -717,28 +713,22 @@ async def send_profit_report(request: Request):
         if "@" not in recipient:
             raise HTTPException(status_code=400, detail="Invalid recipient email")
 
-        # Build request model & compute server-side (trust but verify)
+        # Validate & compute using your existing schema/logic
         try:
             profit_req = ProfitRequest(**payload)
         except Exception as e:
             raise HTTPException(status_code=422, detail=f"Bad payload: {e}")
 
         result = compute_projection(profit_req).model_dump()
+        subject = f"Profit Potential – {payload.get('period') or 'Report'}"
+        html = render_profit_report_html(recipient, payload, result)
 
-        # Subject
-        period = payload.get("period")
-        subject = f"Profit Potential – {period}" if period else "Profit Potential Summary"
-
-        # Mailgun env
         mg_api_key = os.getenv("MAILGUN_API_KEY")
         mg_domain  = os.getenv("MAILGUN_DOMAIN")
         mg_sender  = os.getenv("MAILGUN_SENDER")
         if not all([mg_api_key, mg_domain, mg_sender]):
             raise HTTPException(status_code=500, detail="Missing Mailgun environment variables")
 
-        html = render_profit_report_html(recipient, payload, result)
-
-        # Send (same pattern as /send-risk-report)
         r = requests.post(
             f"https://api.mailgun.net/v3/{mg_domain}/messages",
             auth=("api", mg_api_key),
@@ -754,21 +744,9 @@ async def send_profit_report(request: Request):
         if r.status_code >= 300:
             raise HTTPException(status_code=502, detail=f"Mailgun error: {r.text}")
 
-        # Optional API response snapshot
-        snapshot = {
-            "report_id": str(uuid4()),
-            "email": recipient,
-            "snapshot_at": pd.Timestamp.utcnow().isoformat() + "Z",
-            "version": "profit-snapshot-1",
-            "currency": "AUD",
-            "payload": payload,
-            "computed": result.get("computed"),
-            "results": result.get("results"),
-        }
-
-        return {"success": True, "message": "Profit report sent.", "snapshot": snapshot}
-
+        return {"success": True}
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
