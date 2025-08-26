@@ -688,5 +688,110 @@ if (document.readyState === "loading") {
   boot();
 }
 </script>
+      <script>
+/* ---- Config ---- */
+const SEND_URL = window.PROFIT_REPORT_ENDPOINT || "https://api.candooculture.com/send-profit-report";
+
+/* ---- Prefill email from localStorage (ORS capture) ---- */
+(function initReportEmail(){
+  const el = document.getElementById("reportEmail");
+  if (!el) return;
+  const keys = ["candoo-user-email","reportEmail","userEmail","email"];
+  for (const k of keys){
+    const v = localStorage.getItem(k);
+    if (v && !el.value) { el.value = v; break; }
+  }
+  el.addEventListener("input", ()=>{
+    const v = el.value.trim();
+    localStorage.setItem("reportEmail", v);
+    localStorage.setItem("candoo-user-email", v);
+  });
+})();
+
+/* ---- Build payload for Profit Potential report ---- */
+function buildProfitReportPayload(){
+  const numv = id => {
+    const el = document.getElementById(id);
+    if (!el) return 0;
+    return Number(String(el.value||"").replace(/,/g,"").trim()) || 0;
+  };
+  const txt = id => document.getElementById(id)?.textContent || "–";
+
+  return {
+    period: document.getElementById("periodLabel")?.value || null,
+    inputs: {
+      revenue: numv("revenue"),
+      cogs: numv("cogs"),
+      opex: numv("opex"),
+      grossNow: numv("grossNow") || null,
+      netNow: numv("netNow")
+    },
+    savings: {
+      payroll: numv("payrollSavings"),
+      churn: numv("churnSavings"),
+      workforce: numv("workforceSavings"),
+      deepDive: numv("deepDiveSavings"),
+      leadership: numv("leadershipSavings")
+    },
+    ors: {
+      ebitdaAtRisk: numv("orsRisk")
+    },
+    scenarios: {
+      applyFixes: !!document.getElementById("applyFixes")?.checked,
+      applyORS: !!document.getElementById("applyORS")?.checked
+    },
+    results: {
+      // Fixable Savings table
+      now:   { gross: txt("gpNowCell"),  net: txt("npNowCell") },
+      fixes: { gross: txt("gpFixCell"),  net: txt("npFixCell"),  delta: document.getElementById("npFixDelta")?.innerText || "–" },
+      // ORS table
+      nowORS:{ gross: txt("gpNowORS"),   net: txt("npNowORS") },
+      orsOnly:{gross: txt("gpORSCell"),  net: txt("npORSCell"),  delta: document.getElementById("npORSDelta")?.innerText || "–" }
+    }
+  };
+}
+
+/* ---- Send report (frontend) ---- */
+document.getElementById("sendReport")?.addEventListener("click", async ()=>{
+  const emailEl = document.getElementById("reportEmail");
+  const btn = document.getElementById("sendReport");
+  if (!emailEl || !btn) return;
+
+  const email = emailEl.value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    alert("Please enter a valid email.");
+    return;
+  }
+
+  const payload = buildProfitReportPayload();
+  localStorage.setItem("candoo-user-email", email);
+
+  btn.disabled = true;
+  const prev = btn.textContent;
+  btn.textContent = "Sending…";
+
+  try{
+    const res = await fetch(SEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "omit",
+      body: JSON.stringify({ email, payload })
+    });
+
+    if (!res.ok){
+      const t = await res.text().catch(()=> "");
+      throw new Error(t || `HTTP ${res.status}`);
+    }
+
+    alert("Report sent. Check your inbox.");
+  }catch(err){
+    console.error(err);
+    alert("Couldn’t send the report. We’ll wire the backend next or check CORS.");
+  }finally{
+    btn.disabled = false;
+    btn.textContent = prev;
+  }
+});
+</script>
 </body>
 </html>
