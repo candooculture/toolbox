@@ -183,8 +183,9 @@
       <label for="deepDiveSavings">Productivity Deep Dive – Gain</label>
       <input type="number" id="deepDiveSavings" step="0.01" placeholder="e.g. 90,000">
     </div>
-    <div class="col-4" style="display:flex; justify-content:flex-end; align-items:center;">
-      <label><input type="checkbox" id="applyFixes"> Apply “Fix Inefficiencies”</label>
+    <div class="col-4" style="display:flex; flex-direction:column; align-items:flex-end; justify-content:flex-end;">
+      <label for="applyFixes">Apply “Fix Inefficiencies”</label>
+      <input type="checkbox" id="applyFixes" class="big-checkbox">
     </div>
   </div>
 
@@ -230,8 +231,9 @@
       <label for="orsRisk">ORS – EBITDA at Risk</label>
       <input type="number" id="orsRisk" step="0.01" placeholder="e.g. 800,000">
     </div>
-    <div class="col-4" style="display:flex; justify-content:flex-end; align-items:center;">
-      <label><input type="checkbox" id="applyORS"> Eliminate ORS Risk</label>
+    <div class="col-4" style="display:flex; flex-direction:column; align-items:flex-end; justify-content:flex-end;">
+      <label for="applyORS">Eliminate ORS Risk</label>
+      <input type="checkbox" id="applyORS" class="big-checkbox">
     </div>
   </div>
 
@@ -269,6 +271,28 @@
   </table>
 </div>
 
+      <!-- ===== Styling for checkboxes and button ===== -->
+<style>
+  .btn-recalc {
+    background:#c55c5c;
+    color:#fff;
+    font-weight:600;
+    padding:9px 12px;
+    border:none;
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .btn-recalc:hover {
+    filter:brightness(.95);
+  }
+  .big-checkbox {
+    width: 22px;
+    height: 22px;
+    transform: translateY(4px);
+    cursor:pointer;
+  }
+</style>
+      
 <!-- ===== Styling for muted red button ===== -->
 <style>
   .btn-recalc {
