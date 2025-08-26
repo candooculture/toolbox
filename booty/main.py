@@ -603,25 +603,30 @@ def _fmt(n):
         return "$N/A"
 
 def render_profit_report_html(recipient: str, payload: dict, result: dict) -> str:
-    period = payload.get("period") or "This Period"
-    i = (payload.get("inputs") or {})
-    s = (payload.get("savings") or {})
-    r = (result.get("results") or {})
-    computed = result.get("computed") or {}
+    period   = (payload or {}).get("period") or "This Period"
+    inputs   = (payload or {}).get("inputs")   or {}
+    savings  = (payload or {}).get("savings")  or {}
+    scenarios= (payload or {}).get("scenarios")or {}
+    results  = (result  or {}).get("results")  or {}
+    computed = (result  or {}).get("computed") or {}
 
-    # unpack safely
-    gp_now   = r.get("now", {}).get("gross")
-    np_now   = r.get("now", {}).get("net")
-    np_fix   = r.get("fixes", {}).get("net")
-    d_fix    = r.get("fixes", {}).get("delta_vs_now")
-    np_ors   = r.get("ors", {}).get("net")
-    d_ors    = r.get("ors", {}).get("delta_vs_now")
+    # Pull flags outside the f-string (avoids any odd brace parsing)
+    apply_fixes = bool(scenarios.get("applyFixes"))
+    apply_ors   = bool(scenarios.get("applyORS"))
+
+    # Unpack numbers defensively
+    gp_now = (results.get("now") or {}).get("gross")
+    np_now = (results.get("now") or {}).get("net")
+    np_fix = (results.get("fixes") or {}).get("net")
+    d_fix  = (results.get("fixes") or {}).get("delta_vs_now")
+    np_ors = (results.get("ors") or {}).get("net")
+    d_ors  = (results.get("ors") or {}).get("delta_vs_now")
 
     total_savings = computed.get("totalSavings", 0.0)
     ors_risk      = computed.get("orsEbitdaAtRisk", 0.0)
 
-    return f"""
-<!DOCTYPE html>
+    # Build HTML (escape CSS braces with doubled {{ }})
+    return f"""<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -649,9 +654,9 @@ def render_profit_report_html(recipient: str, payload: dict, result: dict) -> st
   <h3>Current Financials</h3>
   <table>
     <tbody>
-      <tr><td>Revenue</td><td>{_fmt(i.get("revenue"))}</td></tr>
-      <tr><td>COGS</td><td>{_fmt(i.get("cogs"))}</td></tr>
-      <tr><td>Operating Expenses</td><td>{_fmt(i.get("opex"))}</td></tr>
+      <tr><td>Revenue</td><td>{_fmt(inputs.get("revenue"))}</td></tr>
+      <tr><td>COGS</td><td>{_fmt(inputs.get("cogs"))}</td></tr>
+      <tr><td>Operating Expenses</td><td>{_fmt(inputs.get("opex"))}</td></tr>
       <tr><td><strong>Gross Profit (Now)</strong></td><td><strong>{_fmt(gp_now)}</strong></td></tr>
       <tr><td><strong>Net Profit (Now)</strong></td><td><strong>{_fmt(np_now)}</strong></td></tr>
     </tbody>
@@ -661,11 +666,11 @@ def render_profit_report_html(recipient: str, payload: dict, result: dict) -> st
   <table>
     <thead><tr><th>Driver</th><th>Amount</th></tr></thead>
     <tbody>
-      <tr><td>Payroll Waste</td><td>{_fmt(s.get("payroll"))}</td></tr>
-      <tr><td>Customer Churn</td><td>{_fmt(s.get("churn"))}</td></tr>
-      <tr><td>Leadership Drag</td><td>{_fmt(s.get("leadership"))}</td></tr>
-      <tr><td>Workforce Productivity</td><td>{_fmt(s.get("workforce"))}</td></tr>
-      <tr><td>Productivity Deep Dive</td><td>{_fmt(s.get("deepDive"))}</td></tr>
+      <tr><td>Payroll Waste</td><td>{_fmt(savings.get("payroll"))}</td></tr>
+      <tr><td>Customer Churn</td><td>{_fmt(savings.get("churn"))}</td></tr>
+      <tr><td>Leadership Drag</td><td>{_fmt(savings.get("leadership"))}</td></tr>
+      <tr><td>Workforce Productivity</td><td>{_fmt(savings.get("workforce"))}</td></tr>
+      <tr><td>Productivity Deep Dive</td><td>{_fmt(savings.get("deepDive"))}</td></tr>
       <tr><td><strong>Total Fixable Savings</strong></td><td><strong>{_fmt(total_savings)}</strong></td></tr>
     </tbody>
   </table>
@@ -683,18 +688,20 @@ def render_profit_report_html(recipient: str, payload: dict, result: dict) -> st
     <thead><tr><th>Scenario</th><th>Net Profit</th><th>Δ vs Now</th></tr></thead>
     <tbody>
       <tr><td>Now</td><td>{_fmt(np_now)}</td><td class="muted">–</td></tr>
-      <tr><td>Fix Inefficiencies <span class="pill">applyFixes={str(bool(payload.get('scenarios',{{}}).get('applyFixes'))).lower()}</span></td>
-          <td>{_fmt(np_fix)}</td><td>{('<span class="pos">+' if (d_fix or 0)>=0 else '<span class="neg">') + _fmt(d_fix) + '</span>'}</td></tr>
-      <tr><td>Eliminate ORS Risk <span class="pill">applyORS={str(bool(payload.get('scenarios',{{}}).get('applyORS'))).lower()}</span></td>
-          <td>{_fmt(np_ors)}</td><td>{('<span class="pos">+' if (d_ors or 0)>=0 else '<span class="neg">') + _fmt(d_ors) + '</span>'}</td></tr>
+      <tr><td>Fix Inefficiencies <span class="pill">applyFixes={str(apply_fixes).lower()}</span></td>
+          <td>{_fmt(np_fix)}</td>
+          <td>{('<span class="pos">+' if (d_fix or 0) >= 0 else '<span class="neg">') + _fmt(d_fix) + '</span>'}</td></tr>
+      <tr><td>Eliminate ORS Risk <span class="pill">applyORS={str(apply_ors).lower()}</span></td>
+          <td>{_fmt(np_ors)}</td>
+          <td>{('<span class="pos">+' if (d_ors or 0) >= 0 else '<span class="neg">') + _fmt(d_ors) + '</span>'}</td></tr>
     </tbody>
   </table>
 
   <p class="muted" style="margin-top:18px">All amounts in AUD. Sent to {recipient}.</p>
   <p class="muted">Generated by the Candoo Culture Profit Engine • https://www.candooculture.com</p>
 </body>
-</html>
-    """
+</html>"""
+
 
 @app.post("/send-profit-report")
 async def send_profit_report(request: Request):
