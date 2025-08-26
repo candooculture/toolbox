@@ -159,88 +159,111 @@
         </div>
       </div>
 
-      <!-- ===== Inputs: Savings & ORS ===== -->
-      <div class="card">
-        <h2>Fixable Savings & ORS Impact - Auto Populated</h2>
-        <div class="grid" style="margin-top:8px;">
-          <div class="col-4">
-            <label for="payrollSavings">Payroll Waste – Savings</label>
-            <input type="number" id="payrollSavings" step="0.01" placeholder="e.g. 120,000">
-          </div>
-          <div class="col-4">
-            <label for="churnSavings">Customer Churn – Recovery</label>
-            <input type="number" id="churnSavings" step="0.01" placeholder="e.g. 250,000">
-          </div>
-          <div class="col-4">
-            <label for="workforceSavings">Workforce Productivity – Gain</label>
-            <input type="number" id="workforceSavings" step="0.01" placeholder="e.g. 300,000">
-          </div>
-          <div class="col-4">
-            <label for="deepDiveSavings">Productivity Deep Dive – Gain</label>
-            <input type="number" id="deepDiveSavings" step="0.01" placeholder="e.g. 90,000">
-          </div>
-          <div class="col-4">
-            <label for="leadershipSavings">Leadership Drag – Reduction</label>
-            <input type="number" id="leadershipSavings" step="0.01" placeholder="e.g. 160,000">
-          </div>
-          <div class="col-4">
-            <label for="orsRisk">ORS – EBITDA at Risk</label>
-            <input type="number" id="orsRisk" step="0.01" placeholder="e.g. 800,000">
-            <p class="hint">Edit if needed.</p>
-          </div>
-        </div>
+      <!-- ===== Inputs: Fixable Savings ===== -->
+<div class="card">
+  <h2>Fixable Savings</h2>
+  <div class="grid" style="margin-top:8px;">
+    <div class="col-4">
+      <label for="payrollSavings">Payroll Waste – Savings</label>
+      <input type="number" id="payrollSavings" step="0.01" placeholder="e.g. 120,000">
+    </div>
+    <div class="col-4">
+      <label for="churnSavings">Customer Churn – Recovery</label>
+      <input type="number" id="churnSavings" step="0.01" placeholder="e.g. 250,000">
+    </div>
+    <div class="col-4">
+      <label for="workforceSavings">Workforce Productivity – Gain</label>
+      <input type="number" id="workforceSavings" step="0.01" placeholder="e.g. 300,000">
+    </div>
+    <div class="col-4">
+      <label for="deepDiveSavings">Productivity Deep Dive – Gain</label>
+      <input type="number" id="deepDiveSavings" step="0.01" placeholder="e.g. 90,000">
+    </div>
+    <div class="col-4">
+      <label for="leadershipSavings">Leadership Drag – Reduction</label>
+      <input type="number" id="leadershipSavings" step="0.01" placeholder="e.g. 160,000">
+    </div>
+  </div>
 
-        <div class="actions">
-          <label><input type="checkbox" id="applyFixes">Apply “Fix Inefficiencies”</label>
-          <label><input type="checkbox" id="applyORS">Eliminate ORS Risk</label>
-          <button id="recalc">Recalculate</button>
-          <button id="clear" class="ghost">Reset This Page</button>
-        </div>
-      </div>
+  <div class="actions">
+    <label><input type="checkbox" id="applyFixes">Apply “Fix Inefficiencies”</label>
+    <button id="recalcFix">Recalculate</button>
+  </div>
+</div>
 
-      <!-- ===== Output: Summary Table ===== -->
-      <div class="card">
-        <h2>Profit Comparison</h2>
-        <table id="resultsTable" aria-describedby="summary">
-          <thead>
-            <tr>
-              <th>Scenario</th>
-              <th>Gross Profit</th>
-              <th>Net Profit</th>
-              <th>Δ vs Now</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Now</td>
-              <td id="gpNowCell">–</td>
-              <td id="npNowCell">–</td>
-              <td>–</td>
-            </tr>
-            <tr>
-              <td>Fix Inefficiencies</td>
-              <td id="gpFixCell">–</td>
-              <td id="npFixCell">–</td>
-              <td id="npFixDelta">–</td>
-            </tr>
-            <tr>
-              <td>Eliminate ORS Risk</td>
-              <td id="gpORSCell">–</td>
-              <td id="npORSCell">–</td>
-              <td id="npORSDelta">–</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td>Fix + ORS Eliminated</td>
-              <td id="gpBestCell">–</td>
-              <td id="npBestCell">–</td>
-              <td id="npBestDelta">–</td>
-            </tr>
-          </tfoot>
-        </table>
-        <p id="summary" class="hint" style="margin-top:8px;"></p>
-      </div>
+<!-- ===== Output: Fix Savings Comparison ===== -->
+<div class="card">
+  <h2>Profit Comparison – Fixable Savings</h2>
+  <table id="resultsFixTable">
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Gross Profit</th>
+        <th>Net Profit</th>
+        <th>Δ vs Now</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Now</td>
+        <td id="gpNowCell">–</td>
+        <td id="npNowCell">–</td>
+        <td>–</td>
+      </tr>
+      <tr>
+        <td>Fix Inefficiencies</td>
+        <td id="gpFixCell">–</td>
+        <td id="npFixCell">–</td>
+        <td id="npFixDelta">–</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===== Inputs: ORS Risk ===== -->
+<div class="card">
+  <h2>ORS Risk</h2>
+  <div class="grid" style="margin-top:8px;">
+    <div class="col-4">
+      <label for="orsRisk">ORS – EBITDA at Risk</label>
+      <input type="number" id="orsRisk" step="0.01" placeholder="e.g. 800,000">
+    </div>
+  </div>
+
+  <div class="actions">
+    <label><input type="checkbox" id="applyORS">Eliminate ORS Risk</label>
+    <button id="recalcORS">Recalculate</button>
+  </div>
+</div>
+
+<!-- ===== Output: ORS Risk Comparison ===== -->
+<div class="card">
+  <h2>Profit Comparison – ORS Risk</h2>
+  <table id="resultsORSTable">
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Gross Profit</th>
+        <th>Net Profit</th>
+        <th>Δ vs Now</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Now</td>
+        <td id="gpNowORS">–</td>
+        <td id="npNowORS">–</td>
+        <td>–</td>
+      </tr>
+      <tr>
+        <td>Eliminate ORS Risk</td>
+        <td id="gpORSCell">–</td>
+        <td id="npORSCell">–</td>
+        <td id="npORSDelta">–</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
       <!-- ===== Utility ===== -->
       <div class="card">
