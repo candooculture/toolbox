@@ -126,12 +126,11 @@
       </div>
 
       <h1>Profit Potential</h1>
-      <p class="hint">Compare today’s profit to what it could be if you fix inefficiencies and/or eliminate risk (ORS).</p>
 
       <!-- ===== Inputs: Current Financials ===== -->
       <div class="card">
         <h2>Current Financials</h2>
-        <p class="hint">Enter what you know. If you only know Net Profit, you can put it below and leave Revenue/COGS/Opex blank.</p>
+        <p class="hint">Enter what you know. If you only know Net Profit, you can put it below and leave Revenue/COGS/OpEx blank.</p>
         <div class="grid" style="margin-top:8px;">
           <div class="col-4">
             <label for="revenue">Revenue (period)</label>
@@ -150,7 +149,7 @@
             <input type="number" id="grossNow" step="0.01" disabled>
           </div>
           <div class="col-4">
-            <label for="netNow">Net Profit (auto IF complete above)</label>
+            <label for="netNow">Net Profit (auto)</label>
             <input type="number" id="netNow" step="0.01" placeholder="e.g. 600,000">
           </div>
           <div class="col-4">
@@ -162,8 +161,7 @@
 
       <!-- ===== Inputs: Savings & ORS ===== -->
       <div class="card">
-        <h2>Fixable Savings & ORS Impact</h2>
-        <p class="hint">If your calculators already produced $-savings, they may auto-fill. Otherwise, type them.</p>
+        <h2>Fixable Savings & ORS Impact - Auto Populated</h2>
         <div class="grid" style="margin-top:8px;">
           <div class="col-4">
             <label for="payrollSavings">Payroll Waste – Savings</label>
@@ -188,7 +186,7 @@
           <div class="col-4">
             <label for="orsRisk">ORS – EBITDA at Risk</label>
             <input type="number" id="orsRisk" step="0.01" placeholder="e.g. 800,000">
-            <p class="hint">Auto-reads common keys. Edit if needed.</p>
+            <p class="hint">Edit if needed.</p>
           </div>
         </div>
 
