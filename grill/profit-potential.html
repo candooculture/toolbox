@@ -310,18 +310,113 @@
   }
 </style>
 
-      <!-- ===== Utility ===== -->
-      <div class="card">
-        <h3>Export Snapshot</h3>
-        <div class="actions">
-          <button id="copyJSON" class="ghost">Copy JSON</button>
-        </div>
-        <p class="hint">Copies inputs + results so you can paste into notes or email.</p>
-      </div>
+      <!-- ===== Email Report ===== -->
+<div class="card">
+  <h2>Email Report</h2>
+  <div class="grid" style="margin-top:8px;">
+    <div class="col-6">
+      <label for="reportEmail">Send to</label>
+      <input type="email" id="reportEmail" placeholder="e.g. name@company.com">
+    </div>
+    <div class="col-6" style="display:flex; align-items:flex-end; justify-content:flex-end;">
+      <button id="sendReport" class="btn-send">Send Report</button>
     </div>
   </div>
+  <p class="hint">Uses your saved email from ORS if available. You’ll receive a formatted summary of this page.</p>
+</div>
 
-  <script>
+<style>
+  .btn-send{
+    background:#13dcff;
+    color:#000;
+    font-weight:600;
+    padding:9px 12px;
+    border:none; border-radius:9px; cursor:pointer;
+  }
+  .btn-send:hover{ filter:brightness(.95); }
+</style>
+
+<script>
+  // --- Build the same payload your Copy JSON used, but for email ---
+  function buildProfitReportPayload(){
+    const payload = {
+      period: document.getElementById("periodLabel")?.value || null,
+      inputs: {
+        revenue: Number(String(document.getElementById("revenue")?.value||"").replace(/,/g,""))||0,
+        cogs: Number(String(document.getElementById("cogs")?.value||"").replace(/,/g,""))||0,
+        opex: Number(String(document.getElementById("opex")?.value||"").replace(/,/g,""))||0,
+        grossNow: Number(String(document.getElementById("grossNow")?.value||"").replace(/,/g,""))||null,
+        netNow: Number(String(document.getElementById("netNow")?.value||"").replace(/,/g,""))||0
+      },
+      savings: {
+        payroll: Number(String(document.getElementById("payrollSavings")?.value||"").replace(/,/g,""))||0,
+        churn: Number(String(document.getElementById("churnSavings")?.value||"").replace(/,/g,""))||0,
+        workforce: Number(String(document.getElementById("workforceSavings")?.value||"").replace(/,/g,""))||0,
+        deepDive: Number(String(document.getElementById("deepDiveSavings")?.value||"").replace(/,/g,""))||0,
+        leadership: Number(String(document.getElementById("leadershipSavings")?.value||"").replace(/,/g,""))||0
+      },
+      ors: {
+        ebitdaAtRisk: Number(String(document.getElementById("orsRisk")?.value||"").replace(/,/g,""))||0
+      },
+      scenarios: {
+        applyFixes: !!document.getElementById("applyFixes")?.checked,
+        applyORS: !!document.getElementById("applyORS")?.checked
+      },
+      // current on-screen results (uses your existing cell IDs)
+      results: {
+        now:   { gross: document.getElementById("gpNowCell")?.textContent || "–",
+                 net:   document.getElementById("npNowCell")?.textContent || "–" },
+        fixes: { gross: document.getElementById("gpFixCell")?.textContent || "–",
+                 net:   document.getElementById("npFixCell")?.textContent || "–",
+                 delta: document.getElementById("npFixDelta")?.innerText || "–" },
+        orsOnly:{gross: document.getElementById("gpORSCell")?.textContent || "–",
+                 net:   document.getElementById("npORSCell")?.textContent || "–",
+                 delta: document.getElementById("npORSDelta")?.innerText || "–" },
+        best:  { gross: document.getElementById("gpBestCell")?.textContent || "–",
+                 net:   document.getElementById("npBestCell")?.textContent || "–",
+                 delta: document.getElementById("npBestDelta")?.innerText || "–" }
+      }
+    };
+    return payload;
+  }
+
+  // --- Prefill email from localStorage and persist edits ---
+  (function initEmailField(){
+    const emailEl = document.getElementById("reportEmail");
+    if (!emailEl) return;
+
+    const emailKeys = ["candoo-user-email", "reportEmail", "userEmail", "email"];
+    for (const k of emailKeys){
+      const v = localStorage.getItem(k);
+      if (v && !emailEl.value) { emailEl.value = v; break; }
+    }
+    emailEl.addEventListener("input", ()=> {
+      localStorage.setItem("reportEmail", emailEl.value.trim());
+      // keep your global key in sync if present
+      localStorage.setItem("candoo-user-email", emailEl.value.trim());
+    });
+  })();
+
+  // --- Frontend-only: package and dispatch a custom event the backend can hook later ---
+  document.getElementById("sendReport")?.addEventListener("click", ()=>{
+    const email = document.getElementById("reportEmail")?.value.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      alert("Please enter a valid email.");
+      return;
+    }
+    const payload = buildProfitReportPayload();
+    // persist the latest email for other modules
+    localStorage.setItem("candoo-user-email", email);
+
+    // emit a custom event with the data. Backend wiring can listen or this can be swapped for fetch().
+    const evt = new CustomEvent("profit-report:send", { detail: { email, payload }});
+    window.dispatchEvent(evt);
+
+    alert("Report queued to send. (Frontend ready — backend wiring next.)");
+  });
+  </script>
+<script>
+  
   // ---- Storage Keys (soft conventions; we try multiple) ----
   const KEYMAP = {
     ors: ["ors_ebitda_at_risk", "ors-ebitda-risk", "orsTotalRisk", "ORS_EBITDA_AT_RISK"],
