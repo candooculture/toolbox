@@ -336,7 +336,7 @@ def render_report_html(data):
       <li><strong>Leadership Drag:</strong> {data.get("leadership_drag", "N/A")}%</li>
       <li><strong>Productive Hours (org/month):</strong> {data.get("productive_hours", "N/A")}</li>
       <li><strong>Target Hours per Employee (per month):</strong> {data.get("target_hours_per_employee", "N/A")}</li>
-      <li><strong>Average Weekly Hours (per employee):</strong> {data.get("avg_hours", "N/A")}</li>
+      <li><strong>Average Hours per Employee (per month):</strong> {data.get("avg_hours", "N/A")}</li>
       <li><strong>Overtime Hours (org/month):</strong> {data.get("overtime_hours", "N/A")}</li>
       <li><strong>Absenteeism Days (per employee/month):</strong> {data.get("absenteeism_days", "N/A")}</li>
     </ul>
