@@ -542,24 +542,36 @@ async def order_sign(payload: OrderPayload):
     bill = f.get("billing_frequency", "Monthly")
     html = f"""
       <div style="font-family:Montserrat,Arial,sans-serif;line-height:1.55;color:#0b1a21">
-        <h2 style="margin:0 0 8px">Candoo Culture – Order Form</h2>
-        <p>Thanks for your order. A copy of the signed PDF is attached.</p>
-        <h3 style="margin:16px 0 6px">Summary</h3>
-        <table style="border-collapse:collapse">
-          <tbody>
-            <tr><td><strong>Company</strong></td><td style="padding-left:10px">{_esc(f['company'])}</td></tr>
-            <tr><td><strong>ABN/ACN</strong></td><td style="padding-left:10px">{_esc(f['abn'])}</td></tr>
-            <tr><td><strong>Signer</strong></td><td style="padding-left:10px">{_esc(f['name'])} ({_esc(f['title'])})</td></tr>
-            <tr><td><strong>Email</strong></td><td style="padding-left:10px">{_esc(f['email'])}</td></tr>
-            <tr><td><strong>Phone</strong></td><td style="padding-left:10px">{_esc(f['phone'])}</td></tr>
-            <tr><td><strong>Plan Tier</strong></td><td style="padding-left:10px">{_esc(plan)}</td></tr>
-            <tr><td><strong>Billing</strong></td><td style="padding-left:10px">{_esc(bill)}</td></tr>
-            <tr><td><strong>Initial Users</strong></td><td style="padding-left:10px">{_esc(f['initial_users'])}</td></tr>
-            <tr><td><strong>Start Date</strong></td><td style="padding-left:10px">{_esc(f['start_date'])}</td></tr>
-          </tbody>
-        </table>
-        <p style="margin-top:16px;font-size:12px;color:#445a68">UA: {_esc(payload.user_agent or '')}</p>
-      </div>
+  <h2 style="margin:0 0 8px">Candoo Culture – Order Form</h2>
+  <p>Thanks for your order. A copy of the signed PDF is attached.</p>
+
+  <h3 style="margin:16px 0 6px">Summary</h3>
+  <table style="border-collapse:collapse">
+    <tbody>
+      <tr><td><strong>Company</strong></td><td style="padding-left:10px">{_esc(f['company'])}</td></tr>
+      <tr><td><strong>ABN/ACN</strong></td><td style="padding-left:10px">{_esc(f['abn'])}</td></tr>
+      <tr><td><strong>Signer</strong></td><td style="padding-left:10px">{_esc(f['name'])} ({_esc(f['title'])})</td></tr>
+      <tr><td><strong>Email</strong></td><td style="padding-left:10px">{_esc(f['email'])}</td></tr>
+      <tr><td><strong>Phone</strong></td><td style="padding-left:10px">{_esc(f['phone'])}</td></tr>
+      <tr><td><strong>Plan Tier</strong></td><td style="padding-left:10px">{_esc(plan)}</td></tr>
+      <tr><td><strong>Billing</strong></td><td style="padding-left:10px">{_esc(bill)}</td></tr>
+      <tr><td><strong>Initial Users</strong></td><td style="padding-left:10px">{_esc(f['initial_users'])}</td></tr>
+      <tr><td><strong>Start Date</strong></td><td style="padding-left:10px">{_esc(f['start_date'])}</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin:20px 0 6px">Next Steps</h3>
+  <p>
+    You’ll receive an onboarding email from our team by the next business day. 
+    This will outline how to get your people set up and give you the file to populate 
+    with your team’s details. From there, we’ll guide you through the process 
+    to get everyone onboard smoothly.
+  </p>
+
+  <p style="margin-top:16px;font-size:12px;color:#445a68">
+    UA: {_esc(payload.user_agent or '')}
+  </p>
+</div>
     """
 
     # Send to customer + internal
