@@ -338,7 +338,7 @@ def render_report_html(data):
       <li><strong>Target Hours per Employee (per month):</strong> {data.get("target_hours_per_employee", "N/A")}</li>
       <li><strong>Average Hours per Employee (per month):</strong> {data.get("avg_hours", "N/A")}</li>
       <li><strong>Overtime Hours (org/month):</strong> {data.get("overtime_hours", "N/A")}</li>
-      <li><strong>Absenteeism Days (per employee/month):</strong> {data.get("absenteeism_days", "N/A")}</li>
+      <li><strong>Absenteeism Days (org/month):</strong> {data.get("absenteeism_days", "N/A")}</li>
     </ul>
 
     <h4>Calculated &amp; Efficiency Factors</h4>
