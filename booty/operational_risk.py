@@ -77,7 +77,13 @@ def run_operational_risk(data: RiskInput):
 
         # === Productivity (Deep Dive) ===
         if inputs["avg_hours"] > 0 and inputs["absenteeism_days"] > 0:
-            deep_dive_loss = (inputs["absenteeism_days"] / 20) * inputs["avg_salary"]
+            # Module-aligned method:
+            # avg_daily_salary = (avg_salary / 12) / work_days_per_month
+            # where work_days ≈ avg_hours / 7.6 (default ~152h ÷ 7.6 = 20 days)
+            work_days = (inputs.get("avg_hours") or 152) / 7.6
+            monthly_salary = (inputs.get("avg_salary") or 0) / 12
+            avg_daily_salary = (monthly_salary / work_days) if work_days else 0
+            deep_dive_loss = inputs.get("absenteeism_days", 0) * avg_daily_salary
             module_losses["Productivity (Deep Dive)"] = round(deep_dive_loss, 2)
 
         # === Totals and Risk Score ===
