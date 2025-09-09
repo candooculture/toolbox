@@ -2,7 +2,9 @@ from uuid import uuid4
 import os
 import base64
 import hashlib
-from typing import Optional, Dict
+import email.utils
+import datetime as dt
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 import requests
@@ -504,7 +506,8 @@ MAILGUN_API_KEY  = os.getenv("MAILGUN_API_KEY")
 MAILGUN_DOMAIN   = os.getenv("MAILGUN_DOMAIN")            # e.g. mg.candooculture.com
 MAILGUN_SENDER   = os.getenv("MAILGUN_SENDER")            # e.g. orders@candooculture.com
 MAILGUN_API_BASE = os.getenv("MAILGUN_API_BASE", "https://api.mailgun.net")  # set to https://api.eu.mailgun.net if EU
-ORDER_NOTIFY     = os.getenv("ORDER_NOTIFY")              # optional internal recipient (e.g. aaron@...)
+ORDER_NOTIFY     = os.getenv("ORDER_NOTIFY")
+ASSETS_DIR       = os.getenv("ASSETS_DIR", os.path.join(os.path.dirname(__file__), "assets"))              # optional internal recipient (e.g. aaron@...)
 
 class OrderPayload(BaseModel):
     form: Dict
@@ -516,6 +519,7 @@ class OrderPayload(BaseModel):
 
 def _esc(s: str) -> str:
     return (str(s).replace("&","&amp;").replace("<","&lt;")
+                 .replace(">","&gt;").replace('"',"&quot;").replace("'","&#39;"))
 
 
 def schedule_onboarding_pack_email(f: Dict):
@@ -532,29 +536,47 @@ def schedule_onboarding_pack_email(f: Dict):
         else:
             print(f"⚠️ Missing onboarding attachment: {p}")
 
+    # Attachments present in assets folder
     add_if_exists("Onboarding Guide.pdf", "application/pdf")
-    add_if_exists("Partnering with Candoo.pdf", "application/pdf")
+    # Allow either filename for the employee info sheet
+    if os.path.isfile(os.path.join(ASSETS_DIR, "Employee Information Sheet.pdf")):
+        add_if_exists("Employee Information Sheet.pdf", "application/pdf")
+    elif os.path.isfile(os.path.join(ASSETS_DIR, "Partnering with Candoo.pdf")):
+        add_if_exists("Partnering with Candoo.pdf", "application/pdf")
+
     if os.path.isfile(os.path.join(ASSETS_DIR, "invite.csv")):
         add_if_exists("invite.csv", "text/csv")
-    else:
+    elif os.path.isfile(os.path.join(ASSETS_DIR, "invite.xlsx")):
         add_if_exists("invite.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
+    # +1 hour delayed delivery
     delivery_time = email.utils.format_datetime(dt.datetime.utcnow() + dt.timedelta(hours=1))
+
+    subject = f"Next Steps: Onboarding Your Team – {f.get('company','')}".strip()
+    html_body = f"""
+      <div style="font-family:Montserrat,Arial,sans-serif;line-height:1.55;color:#0b1a21">
+        <h2 style="margin:0 0 12px">Next Steps: Onboarding Your Team</h2>
+        <p>Welcome aboard, {{ _esc(f.get('company','')) }}. Thanks again for choosing Candoo Culture — here’s everything you need to get started.</p>
+
+        <ol style="padding-left:18px;margin-top:14px">
+          <li><strong>Onboarding Guide (PDF)</strong> – step-by-step setup flow and CSV structure.</li>
+          <li><strong>Employee Information Sheet (PDF)</strong> – forward to staff; explains privacy and EULA in plain English.</li>
+          <li><strong>Invite Template (CSV/XLSX)</strong> – list your people and upload via the portal (or send it back to us if you want help).</li>
+        </ol>
+
+        <p style="margin-top:16px">Please aim to complete onboarding within the next <strong>5 business days</strong> so you can start receiving your first reports quickly.</p>
+        <p style="margin-top:12px">If you hit any roadblocks, just reply to this email and our team will assist you directly.</p>
+
+        <p style="margin-top:20px">Looking forward to getting your team onboard,<br><strong>The Candoo Culture Team</strong></p>
+        <p style="margin-top:8px;font-size:12px;color:#445a68">Your Privacy Policy and EULA are included in the Employee Information Sheet for reference.</p>
+      </div>
+    """
 
     data = {
         "from": f"Candoo Culture <{MAILGUN_SENDER}>",
-        "to": [f.get("email")],
-        "subject": f"Next Steps: Onboarding Your Team – {f.get('company','')}",
-        "html": """
-          <div style="font-family:Montserrat,Arial,sans-serif;line-height:1.55;color:#0b1a21">
-            <p>Here are your onboarding resources. These include a step-by-step guide, a forwardable info sheet for your team, and the invite template.</p>
-            <ol>
-              <li><strong>Onboarding Guide (PDF)</strong></li>
-              <li><strong>Employee Information Sheet (PDF)</strong></li>
-              <li><strong>Invite Template (CSV/XLSX)</strong></li>
-            </ol>
-          </div>
-        """ ,
+        "to": [str(f.get("email"))],
+        "subject": subject,
+        "html": html_body,
         "o:deliverytime": delivery_time,
     }
     if ORDER_NOTIFY:
@@ -569,9 +591,6 @@ def schedule_onboarding_pack_email(f: Dict):
     )
     if r2.status_code >= 300:
         raise HTTPException(status_code=502, detail=f"Mailgun (Email 2) error: {r2.text}")
-
-                 .replace(">","&gt;").replace('"',"&quot;").replace("'","&#39;"))
-
 @app.post("/api/order-sign")
 async def order_sign(payload: OrderPayload):
     # Env guard
@@ -656,11 +675,6 @@ async def order_sign(payload: OrderPayload):
 
     if r.status_code >= 300:
         raise HTTPException(status_code=502, detail=f"Mailgun error: {r.text}")
-
-    try:
-        schedule_onboarding_pack_email(f)
-    except Exception as e:
-        print(f\"⚠️ Onboarding pack scheduling failed: {e}\")
 
     msg_id = r.json().get("id") if "application/json" in r.headers.get("content-type","") else None
     return {"ok": True, "id": msg_id}
@@ -815,13 +829,9 @@ async def send_profit_report(request: Request):
         if r.status_code >= 300:
             raise HTTPException(status_code=502, detail=f"Mailgun error: {r.text}")
 
-    try:
-        schedule_onboarding_pack_email(f)
-    except Exception as e:
-        print(f\"⚠️ Onboarding pack scheduling failed: {e}\")
-
         return {"success": True}
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
