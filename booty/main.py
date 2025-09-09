@@ -524,7 +524,7 @@ def _esc(s: str) -> str:
 
 def schedule_onboarding_pack_email(f: Dict):
     """
-    Schedule Email 2 (Onboarding Pack) +1 hour with attachments from assets.
+    Email 2 (Onboarding Pack) — send immediately with attachments from assets.
     """
     attachments: List[Tuple[str, Tuple[str, bytes, str]]] = []
 
@@ -538,7 +538,6 @@ def schedule_onboarding_pack_email(f: Dict):
 
     # Attachments present in assets folder
     add_if_exists("Onboarding Guide.pdf", "application/pdf")
-    # Allow either filename for the employee info sheet
     if os.path.isfile(os.path.join(ASSETS_DIR, "Employee Information Sheet.pdf")):
         add_if_exists("Employee Information Sheet.pdf", "application/pdf")
     elif os.path.isfile(os.path.join(ASSETS_DIR, "Partnering with Candoo.pdf")):
@@ -549,14 +548,11 @@ def schedule_onboarding_pack_email(f: Dict):
     elif os.path.isfile(os.path.join(ASSETS_DIR, "invite.xlsx")):
         add_if_exists("invite.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
-    # +1 hour delayed delivery
-    delivery_time = email.utils.format_datetime(dt.datetime.utcnow() + dt.timedelta(minutes=2))
-
     subject = f"Next Steps: Onboarding Your Team – {f.get('company','')}".strip()
     html_body = f"""
       <div style="font-family:Montserrat,Arial,sans-serif;line-height:1.55;color:#0b1a21">
         <h2 style="margin:0 0 12px">Next Steps: Onboarding Your Team</h2>
-        <p>Welcome aboard, {{ _esc(f.get('company','')) }}. Thanks again for choosing Candoo Culture — here’s everything you need to get started.</p>
+        <p>Welcome aboard, { _esc(f.get('company','')) }. Thanks again for choosing Candoo Culture — here’s everything you need to get started.</p>
 
         <ol style="padding-left:18px;margin-top:14px">
           <li><strong>Onboarding Guide (PDF)</strong> – step-by-step setup flow and CSV structure.</li>
@@ -577,7 +573,6 @@ def schedule_onboarding_pack_email(f: Dict):
         "to": [str(f.get("email"))],
         "subject": subject,
         "html": html_body,
-        "o:deliverytime": delivery_time,
     }
     if ORDER_NOTIFY:
         data["bcc"] = [ORDER_NOTIFY]
@@ -591,6 +586,9 @@ def schedule_onboarding_pack_email(f: Dict):
     )
     if r2.status_code >= 300:
         raise HTTPException(status_code=502, detail=f"Mailgun (Email 2) error: {r2.text}")
+    else:
+        print(f"✅ Email 2 sent to {f.get('email')}")
+
 @app.post("/api/order-sign")
 async def order_sign(payload: OrderPayload):
     # Env guard
