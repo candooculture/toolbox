@@ -550,7 +550,7 @@ def schedule_onboarding_pack_email(f: Dict):
         add_if_exists("invite.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     # +1 hour delayed delivery
-    delivery_time = email.utils.format_datetime(dt.datetime.utcnow() + dt.timedelta(hours=1))
+    delivery_time = email.utils.format_datetime(dt.datetime.utcnow() + dt.timedelta(minutes=2))
 
     subject = f"Next Steps: Onboarding Your Team – {f.get('company','')}".strip()
     html_body = f"""
