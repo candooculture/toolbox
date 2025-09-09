@@ -516,6 +516,60 @@ class OrderPayload(BaseModel):
 
 def _esc(s: str) -> str:
     return (str(s).replace("&","&amp;").replace("<","&lt;")
+
+
+def schedule_onboarding_pack_email(f: Dict):
+    """
+    Schedule Email 2 (Onboarding Pack) +1 hour with attachments from assets.
+    """
+    attachments: List[Tuple[str, Tuple[str, bytes, str]]] = []
+
+    def add_if_exists(fname: str, mime: str):
+        p = os.path.join(ASSETS_DIR, fname)
+        if os.path.isfile(p):
+            with open(p, "rb") as fh:
+                attachments.append(("attachment", (fname, fh.read(), mime)))
+        else:
+            print(f"⚠️ Missing onboarding attachment: {p}")
+
+    add_if_exists("Onboarding Guide.pdf", "application/pdf")
+    add_if_exists("Partnering with Candoo.pdf", "application/pdf")
+    if os.path.isfile(os.path.join(ASSETS_DIR, "invite.csv")):
+        add_if_exists("invite.csv", "text/csv")
+    else:
+        add_if_exists("invite.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+    delivery_time = email.utils.format_datetime(dt.datetime.utcnow() + dt.timedelta(hours=1))
+
+    data = {
+        "from": f"Candoo Culture <{MAILGUN_SENDER}>",
+        "to": [f.get("email")],
+        "subject": f"Next Steps: Onboarding Your Team – {f.get('company','')}",
+        "html": """
+          <div style="font-family:Montserrat,Arial,sans-serif;line-height:1.55;color:#0b1a21">
+            <p>Here are your onboarding resources. These include a step-by-step guide, a forwardable info sheet for your team, and the invite template.</p>
+            <ol>
+              <li><strong>Onboarding Guide (PDF)</strong></li>
+              <li><strong>Employee Information Sheet (PDF)</strong></li>
+              <li><strong>Invite Template (CSV/XLSX)</strong></li>
+            </ol>
+          </div>
+        """ ,
+        "o:deliverytime": delivery_time,
+    }
+    if ORDER_NOTIFY:
+        data["bcc"] = [ORDER_NOTIFY]
+
+    r2 = requests.post(
+        f"{MAILGUN_API_BASE}/v3/{MAILGUN_DOMAIN}/messages",
+        auth=("api", MAILGUN_API_KEY),
+        data=data,
+        files=attachments if attachments else None,
+        timeout=20,
+    )
+    if r2.status_code >= 300:
+        raise HTTPException(status_code=502, detail=f"Mailgun (Email 2) error: {r2.text}")
+
                  .replace(">","&gt;").replace('"',"&quot;").replace("'","&#39;"))
 
 @app.post("/api/order-sign")
@@ -602,6 +656,11 @@ async def order_sign(payload: OrderPayload):
 
     if r.status_code >= 300:
         raise HTTPException(status_code=502, detail=f"Mailgun error: {r.text}")
+
+    try:
+        schedule_onboarding_pack_email(f)
+    except Exception as e:
+        print(f\"⚠️ Onboarding pack scheduling failed: {e}\")
 
     msg_id = r.json().get("id") if "application/json" in r.headers.get("content-type","") else None
     return {"ok": True, "id": msg_id}
@@ -756,9 +815,13 @@ async def send_profit_report(request: Request):
         if r.status_code >= 300:
             raise HTTPException(status_code=502, detail=f"Mailgun error: {r.text}")
 
+    try:
+        schedule_onboarding_pack_email(f)
+    except Exception as e:
+        print(f\"⚠️ Onboarding pack scheduling failed: {e}\")
+
         return {"success": True}
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
