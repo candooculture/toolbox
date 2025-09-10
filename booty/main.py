@@ -663,7 +663,7 @@ async def order_sign(payload: OrderPayload):
         ("attachment", ("Candoo-Order.pdf", pdf_bytes, "application/pdf")),
     ]
 
-        r = requests.post(
+    r = requests.post(
         f"{MAILGUN_API_BASE}/v3/{MAILGUN_DOMAIN}/messages",
         auth=("api", MAILGUN_API_KEY),
         data=data,
