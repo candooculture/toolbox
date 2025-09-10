@@ -550,23 +550,23 @@ def schedule_onboarding_pack_email(f: Dict):
 
     subject = f"Next Steps: Onboarding Your Team – {f.get('company','')}".strip()
     html_body = f"""
-      <div style="font-family:Montserrat,Arial,sans-serif;line-height:1.55;color:#0b1a21">
-        <h2 style="margin:0 0 12px">Next Steps: Onboarding Your Team</h2>
-        <p>Welcome aboard, { _esc(f.get('company','')) }. Thanks again for choosing Candoo Culture — here’s everything you need to get started.</p>
+  <div style="font-family:Montserrat,Arial,sans-serif;line-height:1.55;color:#0b1a21">
+    <h2 style="margin:0 0 12px">Next Steps: Onboarding Your Team</h2>
+    <p>Welcome aboard, { _esc(f.get('company','')) }. Thanks again for choosing Candoo Culture - here’s everything you need to get started.</p>
 
-        <ol style="padding-left:18px;margin-top:14px">
-          <li><strong>Onboarding Guide (PDF)</strong> – step-by-step setup flow and CSV structure.</li>
-          <li><strong>Employee Information Sheet (PDF)</strong> – forward to staff; explains privacy and EULA in plain English.</li>
-          <li><strong>Invite Template (CSV/XLSX)</strong> – list your people and upload via the portal (or send it back to us if you want help).</li>
-        </ol>
+    <ol style="padding-left:18px;margin-top:14px">
+      <li><strong>Onboarding Guide (PDF)</strong> - step-by-step setup flow and CSV structure.</li>
+      <li><strong>Employee Information Sheet (PDF)</strong> - forward to staff; explains privacy and EULA in plain English.</li>
+      <li><strong>Invite Template (CSV/XLSX)</strong> - list your people and upload via the portal (or send it back to us if you want help).</li>
+    </ol>
 
-        <p style="margin-top:16px">Please aim to complete onboarding within the next <strong>5 business days</strong> so you can start receiving your first reports quickly.</p>
-        <p style="margin-top:12px">If you hit any roadblocks, just reply to this email and our team will assist you directly.</p>
+    <p style="margin-top:16px">Please aim to complete onboarding within the next <strong>5 business days</strong> so you can start receiving your first reports quickly.</p>
+    <p style="margin-top:12px">If you hit any roadblocks, reach out to us on <strong>0455 460 580</strong> and we’ll help you directly.</p>
 
-        <p style="margin-top:20px">Looking forward to getting your team onboard,<br><strong>The Candoo Culture Team</strong></p>
-        <p style="margin-top:8px;font-size:12px;color:#445a68">Your Privacy Policy and EULA are included in the Employee Information Sheet for reference.</p>
-      </div>
-    """
+    <p style="margin-top:20px">Looking forward to getting your team onboard,<br><strong>The Candoo Culture Team</strong></p>
+    <p style="margin-top:8px;font-size:12px;color:#445a68">Your Privacy Policy and EULA are included in the Employee Information Sheet for reference.</p>
+  </div>
+"""
 
     data = {
         "from": f"Candoo Culture <{MAILGUN_SENDER}>",
