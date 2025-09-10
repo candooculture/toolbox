@@ -663,7 +663,7 @@ async def order_sign(payload: OrderPayload):
         ("attachment", ("Candoo-Order.pdf", pdf_bytes, "application/pdf")),
     ]
 
-    r = requests.post(
+        r = requests.post(
         f"{MAILGUN_API_BASE}/v3/{MAILGUN_DOMAIN}/messages",
         auth=("api", MAILGUN_API_KEY),
         data=data,
@@ -673,12 +673,13 @@ async def order_sign(payload: OrderPayload):
 
     if r.status_code >= 300:
         raise HTTPException(status_code=502, detail=f"Mailgun error: {r.text}")
+
     # Send onboarding pack immediately (Email #2)
-try:
-    schedule_onboarding_pack_email(f)
-    print(f"✅ Email 2 queued for {f.get('email')}")
-except Exception as e:
-    print(f"⚠️ Email 2 failed: {e}")
+    try:
+        schedule_onboarding_pack_email(f)
+        print(f"✅ Email 2 queued for {f.get('email')}")
+    except Exception as e:
+        print(f"⚠️ Email 2 failed: {e}")
 
     msg_id = r.json().get("id") if "application/json" in r.headers.get("content-type","") else None
     return {"ok": True, "id": msg_id}
